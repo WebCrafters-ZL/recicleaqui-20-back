@@ -1,7 +1,8 @@
 {
   "name": "recicleaqui-20-back",
-  "version": "0.0.0",
+  "version": "2.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "start": "node ./bin/www",
     "dev": "nodemon ./bin/www"

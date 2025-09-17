@@ -1,5 +1,6 @@
 import express from 'express';
 import * as authController from '../../controllers/authController.js';
+import apiLimiter from '../../middlewares/rateLimiter.js';
 
 const router = express.Router();
 
@@ -7,7 +8,7 @@ const router = express.Router();
 router.post('/register', authController.register);
 
 // Rota de login de usuário
-router.post('/login', authController.login);
+router.post('/login', apiLimiter, authController.login);
 
 // Rota para verificar autenticação (exemplo de rota protegida)
 router.get('/me', authController.authenticate, authController.getProfile);

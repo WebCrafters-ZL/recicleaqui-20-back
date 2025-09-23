@@ -21,22 +21,3 @@ export async function authenticate(email, password) {
 
     return { user, token };
 }
-
-export async function register(userData) {
-    const existingUser = await User.findOne({ where: { email: userData.email } });
-    if (existingUser) {
-        throw new Error('E-mail já cadastrado');
-    }
-
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
-    const user = await User.create({
-        ...userData,
-        password: hashedPassword,
-    });
-
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
-        expiresIn: '1d',
-    });
-
-    return { user, token };
-}

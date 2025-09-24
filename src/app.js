@@ -7,6 +7,7 @@ import notFound from './middlewares/notFound.js';
 import errorHandler from './middlewares/errorHandler.js';
 import corsConfig from './middlewares/corsConfig.js';
 import apiLimiter from './middlewares/rateLimiter.js';
+import authRoutes from './routes/auth.js';
 
 const app = express();
 
@@ -18,7 +19,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(process.cwd(), 'public')));
-app.use(express.static(path.resolve(path.dirname(new URL(import.meta.url).pathname), 'public')));
+
+app.use('/auth', authRoutes);
 
 app.use(notFound);
 

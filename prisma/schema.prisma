@@ -7,12 +7,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model usuarios {
-  id                 Int       @id(map: "usuarios_pk") @default(autoincrement())
-  email              String    @unique(map: "usuarios_unique") @db.VarChar
-  senha              String    @db.VarChar
-  criadoEm           DateTime  @default(now()) @db.Timestamp(6)
-  editadoEm          DateTime? @db.Timestamp(6)
-  tokenRedefinicao   String?   @db.VarChar
-  tokenRedefGeradoEm DateTime? @db.Timestamp(6)
+model User {
+  id                    Int       @id(map: "users_pk") @default(autoincrement())
+  email                 String    @unique(map: "users_unique") @db.VarChar
+  password              String    @db.VarChar
+  createdAt             DateTime  @default(now()) @db.Timestamp(6)
+  editedAt              DateTime? @db.Timestamp(6)
+  resetToken            String?   @db.VarChar
+  resetTokenGeneratedAt DateTime? @db.Timestamp(6)
 }

@@ -2,11 +2,11 @@ import cookieParser from 'cookie-parser';
 import express from 'express';
 import helmet from 'helmet';
 import logger from 'morgan';
-import path from 'path';
-import notFound from './middlewares/notFound.js';
-import errorHandler from './middlewares/errorHandler.js';
-import corsConfig from './middlewares/corsConfig.js';
-import apiLimiter from './middlewares/rateLimiter.js';
+import path from 'node:path';
+import notFound from './middlewares/not-found.js';
+import errorHandler from './middlewares/error-handler.js';
+import corsConfig from './middlewares/cors-config.js';
+import apiLimiter from './middlewares/rate-limiter.js';
 import authRoutes from './routes/auth.js';
 
 const app = express();
@@ -20,7 +20,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(process.cwd(), 'public')));
 
-app.use('/auth', authRoutes);
+app.use('/api/v1/auth', authRoutes);
 
 app.use(notFound);
 

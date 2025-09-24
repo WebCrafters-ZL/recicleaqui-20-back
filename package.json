@@ -5,9 +5,12 @@
   "type": "module",
   "scripts": {
     "start": "node --env-file=.env ./bin/www",
-    "dev": "nodemon --env-file=.env.development.local ./bin/www"
+    "dev": "nodemon --env-file=.env.development.local ./bin/www",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:prod": "prisma migrate deploy"
   },
   "dependencies": {
+    "@prisma/client": "^6.16.2",
     "bcrypt": "^6.0.0",
     "cookie-parser": "~1.4.4",
     "cors": "^2.8.5",
@@ -22,9 +25,9 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10",
-    "prisma": "^6.16.1"
+    "prisma": "^6.16.2"
   },
   "prisma": {
-    "schema": "src/prisma/schema.prisma"
+    "schema": "prisma/schema.prisma"
   }
 }

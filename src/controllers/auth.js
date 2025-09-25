@@ -1,4 +1,4 @@
-import { authenticate } from "../../services/auth/index.js";
+import { authenticate } from "../services/auth.js";
 
 export async function login(req, res) {
     try {

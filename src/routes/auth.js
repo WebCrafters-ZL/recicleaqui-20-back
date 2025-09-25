@@ -1,6 +1,6 @@
 import { Router } from "express";
-import apiLimiter from "../middlewares/rateLimiter.js";
-import { login } from "../controllers/auth/index.js";
+import apiLimiter from "../middlewares/rate-limiter.js";
+import { login } from "../controllers/auth.js";
 
 const router = Router();
 

@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import prisma from '../../config/prisma.js'
+import prisma from '../config/prisma.js'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
@@ -19,7 +19,7 @@ async function authenticate(email, password) {
         expiresIn: '1d',
     });
 
-    const { password, resetToken, resetTokenGeneratedAt, ...safeUser } = user;
+    const { password: userPassword, resetToken, resetTokenGeneratedAt, ...safeUser } = user;
 
     return { user: safeUser, token };
 }

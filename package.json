@@ -7,7 +7,8 @@
     "start": "node --env-file=.env ./bin/www",
     "dev": "nodemon --env-file=.env.development.local ./bin/www",
     "migrate:dev": "dotenv -e .env.development.local prisma migrate dev",
-    "migrate:prod": "dotenv -e .env prisma migrate deploy"
+    "migrate:prod": "dotenv -e .env prisma migrate deploy",
+    "lint": "eslint . --fix"
   },
   "dependencies": {
     "@prisma/client": "^6.16.2",
@@ -24,6 +25,8 @@
     "pg": "^8.16.3"
   },
   "devDependencies": {
+    "eslint": "^9.37.0",
+    "eslint-plugin-security": "^3.0.1",
     "nodemon": "^3.1.10",
     "prisma": "^6.16.2"
   },

@@ -21,5 +21,9 @@ jobs:
     - name: Instalar dependências
       run: npm install
 
+    - name: Verificar ESLint
+      run: npm run lint -- --max-warnings=0
+    
+
     - name: Executar testes
       run: npm test

@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/"   # Diretório raiz onde está o package.json
+    directory: "/"   
     schedule:
       interval: "weekly"
       day: "monday"

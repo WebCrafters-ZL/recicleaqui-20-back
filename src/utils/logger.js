@@ -1,8 +1,8 @@
-const { createLogger, format, transports } = require('winston');
-const DailyRotateFile = require('winston-daily-rotate-file');
+import { createLogger, format, transports } from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
 
 const logger = createLogger({
-  level: 'info', // nível mínimo de log
+  level: 'info',
   format: format.combine(
     format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     format.errors({ stack: true }),
@@ -25,7 +25,6 @@ const logger = createLogger({
   ]
 });
 
-// Para ver logs também no console durante desenvolvimento
 if (process.env.NODE_ENV !== 'production') {
   logger.add(new transports.Console({
     format: format.combine(
@@ -35,4 +34,4 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 }
 
-module.exports = logger;
+export default logger;

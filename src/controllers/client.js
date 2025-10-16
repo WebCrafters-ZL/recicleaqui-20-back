@@ -1,4 +1,3 @@
-import bcrypt from "bcryptjs";
 import prisma from "../config/prisma.js";
 
 export async function createIndividualClient(req, res) {

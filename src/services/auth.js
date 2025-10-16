@@ -1,7 +1,6 @@
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
+import { comparePassword, generateToken } from '../utils/hash-utils.js';
 import prisma from '../config/prisma.js';
-import logger from '../utils/logger.js'; // ajuste conforme o caminho real
+import logger from '../utils/logger.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
@@ -13,13 +12,13 @@ async function authenticate(email, password) {
             throw new Error('Usuário não encontrado');
         }
 
-        const validPassword = await bcrypt.compare(password, user.password);
+        const validPassword = await comparePassword(password, user.password);
         if (!validPassword) {
             logger.warn(`Tentativa de login falhou: senha inválida (${email})`);
             throw new Error('Senha inválida');
         }
 
-        const token = jwt.sign(
+        const token = generateToken(
             { id: user.id, email: user.email },
             JWT_SECRET,
             { expiresIn: '1d' }

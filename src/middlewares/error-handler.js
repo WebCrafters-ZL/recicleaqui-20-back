@@ -1,6 +1,10 @@
 import logger from '../utils/logger.js'; 
 
 export default function errorHandler(err, req, res, next) {
+    // If headers were already sent, delegate to the default Express error handler
+    if (res.headersSent) {
+        return next(err);
+    }
     // Log de erro centralizado e seguro
     logger.error(`Erro (${req.method} ${req.originalUrl}): ${err.message}`, {
         stack: err.stack,

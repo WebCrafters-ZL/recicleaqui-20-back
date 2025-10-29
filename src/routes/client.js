@@ -1,40 +1,46 @@
-import bcrypt from "bcryptjs";
-import prisma from "../config/prisma.js";
-import logger from "../utils/logger.js"; // ajuste o caminho se necessário
+import express from 'express';
+import logger from '../utils/logger.js';
+import * as clientCtrl from '../controllers/client.js';
 
-export async function createIndividualClient(req, res) {
-    logger.info('Rota createIndividualClient chamada');
-    res.status(501).json({ error: 'Não implementado' });
-}
+const router = express.Router();
 
-export async function createCompanyClient(req, res) {
-    logger.info('Rota createCompanyClient chamada');
-    res.status(501).json({ error: 'Não implementado' });
-}
+// Simple async handler to forward errors to the central error handler
+const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-export async function getClientById(req, res) {
-    logger.info('Rota getClientById chamada');
-    res.status(501).json({ error: 'Não implementado' });
-}
+router.post('/individual', asyncHandler(async (req, res) => {
+    logger.info('Rota POST /clients/individual chamada');
+    return clientCtrl.createIndividualClient(req, res);
+}));
 
-export async function updateIndividualClient(req, res) {
-    logger.info('Rota updateIndividualClient chamada');
-    res.status(501).json({ error: 'Não implementado' });
-}
+router.post('/company', asyncHandler(async (req, res) => {
+    logger.info('Rota POST /clients/company chamada');
+    return clientCtrl.createCompanyClient(req, res);
+}));
 
-export async function updateCompanyClient(req, res) {
-    logger.info('Rota updateCompanyClient chamada');
-    res.status(501).json({ error: 'Não implementado' });
-}
+router.get('/:id', asyncHandler(async (req, res) => {
+    logger.info(`Rota GET /clients/${req.params.id} chamada`);
+    return clientCtrl.getClientById(req, res);
+}));
 
-export async function deleteClient(req, res) {
-    logger.info('Rota deleteClient chamada');
-    res.status(501).json({ error: 'Não implementado' });
-}
+router.put('/individual/:id', asyncHandler(async (req, res) => {
+    logger.info(`Rota PUT /clients/individual/${req.params.id} chamada`);
+    return clientCtrl.updateIndividualClient(req, res);
+}));
 
-// Funções adicionais para uso administrativo (ex.: listar todos os clientes)
+router.put('/company/:id', asyncHandler(async (req, res) => {
+    logger.info(`Rota PUT /clients/company/${req.params.id} chamada`);
+    return clientCtrl.updateCompanyClient(req, res);
+}));
 
-export async function listAllClients(req, res) {
-    logger.info('Rota listAllClients chamada');
-    res.status(501).json({ error: 'Não implementado' });
-}
+router.delete('/:id', asyncHandler(async (req, res) => {
+    logger.info(`Rota DELETE /clients/${req.params.id} chamada`);
+    return clientCtrl.deleteClient(req, res);
+}));
+
+// Admin: list all
+router.get('/', asyncHandler(async (req, res) => {
+    logger.info('Rota GET /clients chamada');
+    return clientCtrl.listAllClients(req, res);
+}));
+
+export default router;

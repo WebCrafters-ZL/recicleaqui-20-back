@@ -8,6 +8,7 @@ import errorHandler from './middlewares/error-handler.js';
 import corsConfig from './middlewares/cors-config.js';
 import apiLimiter from './middlewares/rate-limiter.js';
 import authRoutes from './routes/auth.js';
+import clientRoutes from './routes/client.js';
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(process.cwd(), 'public')));
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/clients', clientRoutes);
 
 app.use(notFound);
 

@@ -17,7 +17,7 @@ async function authenticate(email, password) {
         throw Object.assign(new Error('Senha inválida'), { status: 401 });
     }
 
-    const token = generateToken(
+    const token = await generateToken(
         { id: user.id, email: user.email },
         JWT_SECRET,
         { expiresIn: '1d' }

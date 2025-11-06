@@ -22,8 +22,9 @@ services:
     image: postgres:latest
     restart: unless-stopped
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
     environment:
+      # DATABASE_URL: postgres://postgres:postgres@db:5432
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
 

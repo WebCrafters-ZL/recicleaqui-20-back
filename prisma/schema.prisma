@@ -9,21 +9,39 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum UserRole {
+  CLIENT
+  COLLECTOR
+  ADMIN
+}
+
 enum ClientType {
   individual
   company
 }
 
+enum CollectionType {
+  HOME_PICKUP
+  DROP_OFF_POINT
+  BOTH
+}
+
+// ==================== USUÁRIOS ====================
+
 model User {
   id                    Int       @id(map: "users_pk") @default(autoincrement())
   email                 String    @unique(map: "users_unique") @db.VarChar(255)
   password              String    @db.VarChar(255)
+  role                  UserRole  @default(CLIENT)
   createdAt             DateTime  @default(now()) @db.Timestamp(6)
   editedAt              DateTime? @db.Timestamp(6)
   resetToken            String?   @db.VarChar(255)
   resetTokenGeneratedAt DateTime? @db.Timestamp(6)
   Client                Client?
+  Collector             Collector?
 }
+
+// ==================== CLIENTES ====================
 
 model Client {
   id         Int         @id(map: "clients_pk") @default(autoincrement())
@@ -61,17 +79,81 @@ model Company {
 }
 
 model Address {
-  id         Int    @id(map: "addresses_pk") @default(autoincrement())
-  addressType String @db.VarChar(50)
-  addressName String @db.VarChar(255)
-  number     String @db.VarChar(10)
-  additionalInfo String? @db.VarChar(255)
-  neighborhood String @db.VarChar(100)
-  postalCode String @db.VarChar(10)
-  city       String @db.VarChar(100)
-  state      String @db.VarChar(2)
-  clientId   Int    @unique(map: "addresses_clients_id_key")
-  client     Client @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "addresses_clients_id_fkey")
-  createdAt  DateTime @default(now()) @db.Timestamp(6)
-  editedAt   DateTime? @db.Timestamp(6)
+  id             Int       @id(map: "addresses_pk") @default(autoincrement())
+  addressType    String    @db.VarChar(50)
+  addressName    String    @db.VarChar(255)
+  number         String    @db.VarChar(10)
+  additionalInfo String?   @db.VarChar(255)
+  neighborhood   String    @db.VarChar(100)
+  postalCode     String    @db.VarChar(10)
+  city           String    @db.VarChar(100)
+  state          String    @db.VarChar(2)
+  clientId       Int       @unique(map: "addresses_clients_id_key")
+  client         Client    @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "addresses_clients_id_fkey")
+  createdAt      DateTime  @default(now()) @db.Timestamp(6)
+  editedAt       DateTime? @db.Timestamp(6)
+}
+
+// ==================== COLETORES ====================
+
+model Collector {
+  id                Int                     @id(map: "collectors_pk") @default(autoincrement())
+  companyName       String                  @db.VarChar(255)
+  tradeName         String                  @db.VarChar(255)
+  cnpj              String                  @unique(map: "collectors_unique") @db.VarChar(18)
+  phone             String                  @db.VarChar(20)
+  description       String?                 @db.Text
+  operatingHours    String?                 @db.VarChar(255)
+  collectionType    CollectionType          @default(BOTH)
+  acceptedMaterials String[]
+  userId            Int                     @unique(map: "collectors_users_id_key")
+  user              User                    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "collectors_users_id_fkey")
+  headquarters      CollectorHeadquarters?
+  collectionPoints  CollectionPoint[]
+  createdAt         DateTime                @default(now()) @db.Timestamp(6)
+  editedAt          DateTime?               @db.Timestamp(6)
+}
+
+model CollectorHeadquarters {
+  id             Int       @id(map: "collector_headquarters_pk") @default(autoincrement())
+  addressType    String    @db.VarChar(50)
+  addressName    String    @db.VarChar(255)
+  number         String    @db.VarChar(10)
+  additionalInfo String?   @db.VarChar(255)
+  neighborhood   String    @db.VarChar(100)
+  postalCode     String    @db.VarChar(10)
+  city           String    @db.VarChar(100)
+  state          String    @db.VarChar(2)
+  latitude       Float?
+  longitude      Float?
+  collectorId    Int       @unique(map: "collector_headquarters_collectors_id_key")
+  collector      Collector @relation(fields: [collectorId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "collector_headquarters_collectors_id_fkey")
+  createdAt      DateTime  @default(now()) @db.Timestamp(6)
+  editedAt       DateTime? @db.Timestamp(6)
+}
+
+model CollectionPoint {
+  id                Int       @id(map: "collection_points_pk") @default(autoincrement())
+  name              String    @db.VarChar(255)
+  description       String?   @db.Text
+  addressType       String    @db.VarChar(50)
+  addressName       String    @db.VarChar(255)
+  number            String    @db.VarChar(10)
+  additionalInfo    String?   @db.VarChar(255)
+  neighborhood      String    @db.VarChar(100)
+  postalCode        String    @db.VarChar(10)
+  city              String    @db.VarChar(100)
+  state             String    @db.VarChar(2)
+  latitude          Float?
+  longitude         Float?
+  operatingHours    String?   @db.VarChar(255)
+  acceptedMaterials String[]
+  isActive          Boolean   @default(true)
+  collectorId       Int
+  collector         Collector @relation(fields: [collectorId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "collection_points_collectors_id_fkey")
+  createdAt         DateTime  @default(now()) @db.Timestamp(6)
+  editedAt          DateTime? @db.Timestamp(6)
+
+  @@index([collectorId], map: "collection_points_collector_id_idx")
+  @@index([city, state], map: "collection_points_location_idx")
 }

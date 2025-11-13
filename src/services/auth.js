@@ -18,7 +18,7 @@ async function authenticate(email, password) {
     }
 
     const token = await generateToken(
-        { id: user.id, email: user.email },
+        { id: user.id, email: user.email, role: user.role },
         JWT_SECRET,
         { expiresIn: '1d' }
     );
@@ -28,7 +28,7 @@ async function authenticate(email, password) {
     delete safeUser.resetToken;
     delete safeUser.resetTokenGeneratedAt;
 
-    logger.info(`Usuário autenticado com sucesso: ${email}`);
+    logger.info(`Usuário autenticado com sucesso: ${email} (role: ${user.role})`);
 
     return { user: safeUser, token };
 }

@@ -214,3 +214,18 @@ export async function listAllClients(req, res) {
     const clients = await prisma.client.findMany({ include: { user: true, individual: true, company: true, address: true } });
     return res.json(clients);
 }
+
+export async function getMe(req, res) {
+    const userId = req.user?.id;
+    if (!userId) {
+        return res.status(401).json({ message: 'Usuário não autenticado' });
+    }
+    const client = await prisma.client.findUnique({
+        where: { userId },
+        include: { user: true, individual: true, company: true, address: true }
+    });
+    if (!client) {
+        return res.status(404).json({ message: 'Cliente não encontrado' });
+    }
+    return res.json(client);
+}

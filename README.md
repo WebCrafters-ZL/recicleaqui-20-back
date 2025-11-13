@@ -7,33 +7,9 @@ Pré-requisitos:
 - PostgreSQL (projeto usa Prisma)
 
 Quick start & comandos
-```bash
-git clone https://github.com/seu-usuario/recicleaqui-20-back.git
-cd recicleaqui-20-back
-npm install
 
-# criar .env a partir do modelo
-cp .env.example .env
-# (opcional) criar .env.development.local
-cp .env.example .env.development.local
-
-# aplicar migrações em desenvolvimento e gerar client Prisma
-npm run migrate:dev
-
-# rodar em modo desenvolvimento (nodemon)
-npm run dev
-
-# rodar em produção (executa bin/www)
-npm start
-```
-- `npx prisma generate` — gera client Prisma
-- `npx prisma studio` — interface web para dados
-
-Notas rápidas:
-- Edite `.env` com as credenciais corretas (não commite `.env`).
 - Revise as migrations no diretório `prisma/migrations` antes de aplicar em produção.
 
-Estrutura da API
 ----------------
 
 A API está organizada em 3 módulos principais:
@@ -191,58 +167,9 @@ Base: `/api/v1/collectors`
 ```
 
 - GET `/api/v1/collectors/:id` — obtém coletor por id (inclui sede e pontos de coleta)
-- PUT `/api/v1/collectors/:id` — atualiza coletor
-- DELETE `/api/v1/collectors/:id` — remove coletor
-- GET `/api/v1/collectors` — lista todos coletores
-- GET `/api/v1/collectors/search` — busca coletores com filtros
-	- Query params:
-		- `city` — cidade
-		- `state` — estado (UF)
-		- `material` — material aceito
-		- `collectionType` — tipo de coleta: HOME_PICKUP, DROP_OFF_POINT ou BOTH
-		- `latitude`, `longitude`, `radius` — busca por proximidade (raio em km)
-	- Exemplo: `/api/v1/collectors/search?city=São Paulo&state=SP&material=plastico`
-
-**Rotas de pontos de coleta:**
-
-- GET `/api/v1/collectors/:collectorId/collection-points` — lista pontos de coleta de um coletor
-- POST `/api/v1/collectors/:collectorId/collection-points` — cria novo ponto de coleta
-	- Exemplo payload:
-
-```json
-{
-	"name": "Ponto Zona Norte",
-	"description": "Ponto de coleta na zona norte",
-	"addressType": "Avenida",
-	"addressName": "Norte",
-	"number": "2000",
-	"neighborhood": "Jardim Norte",
-	"postalCode": "13501000",
-	"city": "Rio Claro",
-	"state": "SP",
-	"latitude": -22.3900,
-	"longitude": -47.5400,
-	"operatingHours": "Seg-Sex: 8h-17h",
-	"acceptedMaterials": ["plastico", "metal", "vidro"]
-}
-```
-
-- PUT `/api/v1/collectors/collection-points/:id` — atualiza ponto de coleta
-- DELETE `/api/v1/collectors/collection-points/:id` — remove ponto de coleta (soft delete)
-
-Observações sobre coletores:
-- Tipos de coleta (`collectionType`):
-	- `HOME_PICKUP` — apenas coleta domiciliar
-	- `DROP_OFF_POINT` — apenas pontos de coleta (requer ao menos um ponto)
-	- `BOTH` — ambos os tipos (padrão)
-- Materiais aceitos podem ser especificados tanto no coletor quanto em cada ponto de coleta
-- Pontos de coleta suportam coordenadas geográficas para busca por proximidade
-- A busca considera tanto a sede quanto os pontos de coleta ativos
-
 
 ---
 
-Exemplos de respostas
 ---------------------
 
 1) Criação de pessoa física — sucesso (201)
@@ -265,7 +192,6 @@ Resposta:
 {
 	"status": 409,
 	"message": "CNPJ já cadastrado"
-}
 ```
 
 3) Requisição com dado inválido — CPF inválido (400)
@@ -280,16 +206,8 @@ Resposta:
 ```
 
 4) Obter cliente não encontrado (404)
-
-Resposta:
-
-```json
-{
-	"status": 404,
 	"message": "Cliente não encontrado"
 }
-```
-
 5) Criação de coletor — sucesso (201)
 
 Resposta:

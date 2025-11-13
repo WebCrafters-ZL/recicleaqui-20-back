@@ -28,9 +28,20 @@ async function authenticate(email, password) {
     delete safeUser.resetToken;
     delete safeUser.resetTokenGeneratedAt;
 
+    let clientInfo = null;
+    if (user.role === 'CLIENT') {
+        const client = await prisma.Client.findUnique({
+            where: { userId: user.id },
+            select: { id: true, type: true }
+        });
+        if (client) {
+            clientInfo = { clientId: client.id, clientType: client.type };
+        }
+    }
+
     logger.info(`Usuário autenticado com sucesso: ${email} (role: ${user.role})`);
 
-    return { user: safeUser, token };
+    return { user: safeUser, token, ...clientInfo };
 }
 
 export { authenticate };

@@ -1,6 +1,7 @@
 import express from 'express';
 import logger from '../utils/logger.js';
 import * as clientCtrl from '../controllers/client.js';
+import authRequired from '../middlewares/auth-required.js';
 
 const router = express.Router();
 
@@ -41,6 +42,11 @@ router.delete('/:id', asyncHandler(async (req, res) => {
 router.get('/', asyncHandler(async (req, res) => {
     logger.info('Rota GET /clients chamada');
     return clientCtrl.listAllClients(req, res);
+}));
+
+router.get('/me', authRequired, asyncHandler(async (req, res) => {
+    logger.info('Rota GET /clients/me chamada');
+    return clientCtrl.getMe(req, res);
 }));
 
 export default router;

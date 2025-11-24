@@ -47,6 +47,7 @@ model Client {
   id         Int         @id(map: "clients_pk") @default(autoincrement())
   type       ClientType
   phone      String      @db.VarChar(20)
+  avatarUrl  String?     @db.VarChar(500)
   userId     Int         @unique(map: "clients_users_id_key")
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "clients_users_id_fkey")
   individual Individual?

@@ -15,7 +15,7 @@ export default class ClientService extends BaseService {
    * Cria cliente Individual
    */
   async createIndividualClient(data) {
-    const { email, password, phone, firstName, lastName, cpf, address } = data;
+    const { email, password, phone, firstName, lastName, cpf, address, avatarUrl } = data;
 
     // Validação de campos obrigatórios
     this.validateRequiredFields(data, ['email', 'password', 'phone', 'firstName', 'lastName', 'cpf']);
@@ -51,7 +51,8 @@ export default class ClientService extends BaseService {
       firstName,
       lastName,
       cpf: normalizedCpf,
-      address
+      address,
+      avatarUrl
     });
   }
 
@@ -59,7 +60,7 @@ export default class ClientService extends BaseService {
    * Cria cliente Company
    */
   async createCompanyClient(data) {
-    const { email, password, phone, companyName, tradeName, cnpj, address } = data;
+    const { email, password, phone, companyName, tradeName, cnpj, address, avatarUrl } = data;
 
     // Validação de campos obrigatórios
     this.validateRequiredFields(data, ['email', 'password', 'phone', 'companyName', 'tradeName', 'cnpj']);
@@ -95,7 +96,8 @@ export default class ClientService extends BaseService {
       companyName,
       tradeName,
       cnpj: normalizedCnpj,
-      address
+      address,
+      avatarUrl
     });
   }
 
@@ -132,7 +134,7 @@ export default class ClientService extends BaseService {
    * Atualiza cliente Individual
    */
   async updateIndividualClient(id, data) {
-    const { phone, firstName, lastName, cpf, address } = data;
+    const { phone, firstName, lastName, cpf, address, avatarUrl } = data;
 
     // Verifica se cliente existe
     const client = await this.clientRepo.findById(id);
@@ -158,7 +160,8 @@ export default class ClientService extends BaseService {
       firstName,
       lastName,
       cpf: normalizedCpf,
-      address
+      address,
+      avatarUrl
     });
   }
 
@@ -166,7 +169,7 @@ export default class ClientService extends BaseService {
    * Atualiza cliente Company
    */
   async updateCompanyClient(id, data) {
-    const { phone, companyName, tradeName, cnpj, address } = data;
+    const { phone, companyName, tradeName, cnpj, address, avatarUrl } = data;
 
     // Verifica se cliente existe
     const client = await this.clientRepo.findById(id);
@@ -192,7 +195,8 @@ export default class ClientService extends BaseService {
       companyName,
       tradeName,
       cnpj: normalizedCnpj,
-      address
+      address,
+      avatarUrl
     });
   }
 

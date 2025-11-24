@@ -1,9 +1,23 @@
-import { Router } from "express";
-import apiLimiter from "../middlewares/rate-limiter.js";
-import { login } from "../controllers/auth.js";
+import { Router } from 'express';
+import apiLimiter from '../middlewares/RateLimiterMiddleware.js';
+import prisma from '../config/DatabaseManager.js';
+
+// Importar classes
+import AuthRepository from '../repositories/AuthRepository.js';
+import AuthService from '../services/AuthService.js';
+import AuthController from '../controllers/AuthController.js';
+
+// Instanciar dependências
+const authRepository = new AuthRepository(prisma);
+const authService = new AuthService(authRepository);
+const authController = new AuthController(authService);
 
 const router = Router();
 
-router.post("/login", apiLimiter, login);
+// Helper para async handlers
+const asyncHandler = (fn) => (req, res, next) => 
+  Promise.resolve(fn(req, res, next)).catch(next);
+
+router.post('/login', apiLimiter, asyncHandler(authController.login));
 
 export default router;

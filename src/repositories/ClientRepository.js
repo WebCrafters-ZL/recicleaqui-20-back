@@ -9,7 +9,7 @@ export default class ClientRepository {
   /**
    * Cria cliente tipo Individual com transação
    */
-  async createIndividual({ email, password, phone, firstName, lastName, cpf, address }) {
+  async createIndividual({ email, password, phone, firstName, lastName, cpf, address, avatarUrl }) {
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({ 
         data: { email, password } 
@@ -19,6 +19,7 @@ export default class ClientRepository {
         data: {
           type: 'individual',
           phone,
+          avatarUrl,
           userId: user.id
         }
       });
@@ -45,7 +46,7 @@ export default class ClientRepository {
   /**
    * Cria cliente tipo Company com transação
    */
-  async createCompany({ email, password, phone, companyName, tradeName, cnpj, address }) {
+  async createCompany({ email, password, phone, companyName, tradeName, cnpj, address, avatarUrl }) {
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({ 
         data: { email, password } 
@@ -55,6 +56,7 @@ export default class ClientRepository {
         data: {
           type: 'company',
           phone,
+          avatarUrl,
           userId: user.id
         }
       });
@@ -156,12 +158,15 @@ export default class ClientRepository {
   /**
    * Atualiza cliente Individual com transação
    */
-  async updateIndividual(id, { phone, firstName, lastName, cpf, address }) {
+  async updateIndividual(id, { phone, firstName, lastName, cpf, address, avatarUrl }) {
     return this.prisma.$transaction(async (tx) => {
-      if (phone) {
+      if (phone || avatarUrl !== undefined) {
+        const updateData = { editedAt: new Date() };
+        if (phone) updateData.phone = phone;
+        if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
         await tx.client.update({ 
           where: { id }, 
-          data: { phone, editedAt: new Date() } 
+          data: updateData
         });
       }
 
@@ -209,12 +214,15 @@ export default class ClientRepository {
   /**
    * Atualiza cliente Company com transação
    */
-  async updateCompany(id, { phone, companyName, tradeName, cnpj, address }) {
+  async updateCompany(id, { phone, companyName, tradeName, cnpj, address, avatarUrl }) {
     return this.prisma.$transaction(async (tx) => {
-      if (phone) {
+      if (phone || avatarUrl !== undefined) {
+        const updateData = { editedAt: new Date() };
+        if (phone) updateData.phone = phone;
+        if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
         await tx.client.update({ 
           where: { id }, 
-          data: { phone, editedAt: new Date() } 
+          data: updateData
         });
       }
 

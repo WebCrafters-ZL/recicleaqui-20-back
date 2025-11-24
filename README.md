@@ -53,7 +53,7 @@ RecicleAqui 2.0 é uma plataforma que facilita o processo de reciclagem, conecta
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/leoesilva/recicleaqui-20-back.git
+git clone https://github.com/seu-usuario/recicleaqui-20-back.git
 cd recicleaqui-20-back
 ```
 

@@ -63,7 +63,12 @@ export default class ClientController extends BaseController {
     if (!userId) {
       return res.status(401).json({ message: 'Usuário não autenticado' });
     }
-    const client = await this.clientService.getClientByUserId(userId);
+    // Garante que o userId seja inteiro
+    const userIdInt = parseInt(userId, 10);
+    if (isNaN(userIdInt)) {
+      return res.status(400).json({ message: 'ID de usuário inválido' });
+    }
+    const client = await this.clientService.getClientByUserId(userIdInt);
     return res.json(client);
   }
 }

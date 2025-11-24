@@ -554,11 +554,6 @@ Requisição → Router → Controller → Service → Repository → Database
 
 Este projeto é privado e proprietário.
 
-## 👤 Autor
-
-**Leonardo Silva**
-- GitHub: [@leoesilva](https://github.com/leoesilva)
-
 ---
 
 **RecicleAqui 2.0** - Facilitando a reciclagem e preservando o meio ambiente 🌱♻️

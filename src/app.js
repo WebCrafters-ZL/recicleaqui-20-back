@@ -3,31 +3,99 @@ import express from 'express';
 import helmet from 'helmet';
 import logger from 'morgan';
 import path from 'node:path';
-import notFound from './middlewares/not-found.js';
-import errorHandler from './middlewares/error-handler.js';
-import corsConfig from './middlewares/cors-config.js';
-import apiLimiter from './middlewares/rate-limiter.js';
+import notFound from './middlewares/NotFoundMiddleware.js';
+import errorHandler from './middlewares/ErrorHandlerMiddleware.js';
+import corsConfig from './middlewares/CorsMiddleware.js';
+import apiLimiter from './middlewares/RateLimiterMiddleware.js';
 import authRoutes from './routes/auth.js';
 import clientRoutes from './routes/client.js';
 import collectorRoutes from './routes/collector.js';
 
-const app = express();
+/**
+ * Application - Classe principal da aplicação Express
+ */
+class Application {
+  constructor() {
+    this.app = express();
+    this.setupMiddlewares();
+    this.setupRoutes();
+    this.setupErrorHandlers();
+  }
 
-app.use(corsConfig);
-app.use(apiLimiter);
-app.use(helmet());
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(process.cwd(), 'public')));
+  /**
+   * Configura middlewares globais
+   */
+  setupMiddlewares() {
+    this.app.use(corsConfig);
+    this.app.use(apiLimiter);
+    this.app.use(helmet());
+    this.app.use(logger('dev'));
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: false }));
+    this.app.use(cookieParser());
+    this.app.use(express.static(path.join(process.cwd(), 'public')));
+  }
 
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/clients', clientRoutes);
-app.use('/api/v1/collectors', collectorRoutes);
+  /**
+   * Configura rotas da API
+   */
+  setupRoutes() {
+    // Rotas API v1
+    this.app.use('/api/v1/auth', authRoutes);
+    this.app.use('/api/v1/clients', clientRoutes);
+    this.app.use('/api/v1/collectors', collectorRoutes);
+  }
 
-app.use(notFound);
+  /**
+   * Configura handlers de erro
+   */
+  setupErrorHandlers() {
+    this.app.use(notFound);
+    this.app.use(errorHandler);
+  }
 
-app.use(errorHandler);
+  /**
+   * Adiciona rota customizada
+   */
+  addRoute(path, router) {
+    this.app.use(path, router);
+  }
 
+  /**
+   * Adiciona middleware customizado
+   */
+  addMiddleware(middleware) {
+    this.app.use(middleware);
+  }
+
+  /**
+   * Obtém instância do Express app
+   */
+  getExpressApp() {
+    return this.app;
+  }
+
+  /**
+   * Define configuração
+   */
+  set(key, value) {
+    this.app.set(key, value);
+  }
+
+  /**
+   * Obtém configuração
+   */
+  get(key) {
+    return this.app.get(key);
+  }
+}
+
+// Cria instância da aplicação
+const application = new Application();
+const app = application.getExpressApp();
+
+// Export para compatibilidade
 export default app;
+
+// Export da classe
+export { Application };

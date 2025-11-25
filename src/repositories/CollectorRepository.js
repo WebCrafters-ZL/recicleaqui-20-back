@@ -1,3 +1,5 @@
+import { Prisma } from '@prisma/client';
+
 /**
  * CollectorRepository - Encapsula acesso ao banco para operações com coletores
  */
@@ -150,25 +152,25 @@ export default class CollectorRepository {
    * Busca CNPJ existente (normalizado)
    */
   async findExistingCnpj(cnpj) {
-    const [result] = await this.prisma.$queryRaw`
-      SELECT id FROM "Collector" 
+    const result = await this.prisma.$queryRaw(
+      Prisma.sql`SELECT id FROM "Collector" 
       WHERE regexp_replace(cnpj, '\\D', '', 'g') = ${cnpj} 
-      LIMIT 1
-    `;
-    return result;
+      LIMIT 1`
+    );
+    return result[0];
   }
 
   /**
    * Verifica CNPJ já cadastrado (com exceção de um collectorId específico)
    */
   async checkCnpjConflict(cnpj, excludeCollectorId) {
-    const [result] = await this.prisma.$queryRaw`
-      SELECT id FROM "Collector" 
+    const result = await this.prisma.$queryRaw(
+      Prisma.sql`SELECT id FROM "Collector" 
       WHERE regexp_replace(cnpj, '\\D', '', 'g') = ${cnpj} 
       AND id != ${excludeCollectorId}
-      LIMIT 1
-    `;
-    return result;
+      LIMIT 1`
+    );
+    return result[0];
   }
 
   /**

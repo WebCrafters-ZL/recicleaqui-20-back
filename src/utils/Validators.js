@@ -79,6 +79,22 @@ class Validators {
     const s = Validators.onlyDigits(cep);
     return /^[0-9]{8}$/.test(s);
   }
+
+  /**
+   * Valida se string é uma linha de material válida
+   */
+  static isValidMaterialLine(line) {
+    const allowed = ['VERDE', 'MARROM', 'AZUL', 'BRANCA'];
+    return allowed.includes(String(line).toUpperCase());
+  }
+
+  /**
+   * Valida array de linhas (todas devem ser válidas)
+   */
+  static areValidMaterialLines(lines) {
+    if (!Array.isArray(lines) || lines.length === 0) return false;
+    return lines.every(l => Validators.isValidMaterialLine(l));
+  }
 }
 
 // Exports nomeados para compatibilidade com código existente
@@ -86,6 +102,8 @@ export const isValidEmail = Validators.isValidEmail.bind(Validators);
 export const isValidCPF = Validators.isValidCPF.bind(Validators);
 export const isValidCNPJ = Validators.isValidCNPJ.bind(Validators);
 export const onlyDigits = Validators.onlyDigits.bind(Validators);
+export const isValidMaterialLine = Validators.isValidMaterialLine.bind(Validators);
+export const areValidMaterialLines = Validators.areValidMaterialLines.bind(Validators);
 
 // Export da classe
 export default Validators;

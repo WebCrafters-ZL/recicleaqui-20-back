@@ -10,6 +10,7 @@ import apiLimiter from './middlewares/RateLimiterMiddleware.js';
 import authRoutes from './routes/auth.js';
 import clientRoutes from './routes/client.js';
 import collectorRoutes from './routes/collector.js';
+import discardRoutes from './routes/discard.js';
 
 /**
  * Application - Classe principal da aplicação Express
@@ -44,6 +45,7 @@ class Application {
     this.app.use('/api/v1/auth', authRoutes);
     this.app.use('/api/v1/clients', clientRoutes);
     this.app.use('/api/v1/collectors', collectorRoutes);
+    this.app.use('/api/v1/discards', discardRoutes);
   }
 
   /**

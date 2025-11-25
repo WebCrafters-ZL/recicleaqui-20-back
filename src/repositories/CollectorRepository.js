@@ -19,7 +19,7 @@ export default class CollectorRepository {
     description, 
     operatingHours,
     collectionType,
-    acceptedMaterials, 
+    acceptedLines, 
     headquarters,
     collectionPoints
   }) {
@@ -41,7 +41,7 @@ export default class CollectorRepository {
           description,
           operatingHours,
           collectionType: collectionType || 'BOTH',
-          acceptedMaterials: acceptedMaterials || [],
+          acceptedLines: acceptedLines || [],
           userId: user.id
         }
       });
@@ -174,7 +174,7 @@ export default class CollectorRepository {
   /**
    * Atualiza coletor com transação
    */
-  async update(id, { phone, companyName, tradeName, cnpj, description, operatingHours, collectionType, acceptedMaterials, headquarters }) {
+  async update(id, { phone, companyName, tradeName, cnpj, description, operatingHours, collectionType, acceptedLines, headquarters }) {
     return this.prisma.$transaction(async (tx) => {
       const updateData = {};
       if (phone) updateData.phone = phone;
@@ -184,7 +184,7 @@ export default class CollectorRepository {
       if (description !== undefined) updateData.description = description;
       if (operatingHours !== undefined) updateData.operatingHours = operatingHours;
       if (collectionType) updateData.collectionType = collectionType;
-      if (acceptedMaterials) updateData.acceptedMaterials = acceptedMaterials;
+      if (acceptedLines) updateData.acceptedLines = acceptedLines;
 
       if (Object.keys(updateData).length > 0) {
         updateData.editedAt = new Date();

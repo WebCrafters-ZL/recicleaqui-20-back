@@ -25,6 +25,8 @@ export default class CollectorService extends BaseService {
       description, 
       operatingHours,
       collectionType,
+      acceptedLines,
+      // suporte legado
       acceptedMaterials, 
       headquarters,
       collectionPoints
@@ -78,7 +80,7 @@ export default class CollectorService extends BaseService {
       description,
       operatingHours,
       collectionType,
-      acceptedMaterials,
+      acceptedLines: acceptedLines || acceptedMaterials || [],
       headquarters,
       collectionPoints
     });
@@ -106,12 +108,14 @@ export default class CollectorService extends BaseService {
    * Busca coletores com filtros
    */
   async searchCollectors(filters) {
-    const { city, state, material, collectionType, latitude, longitude, radius } = filters;
+    const { city, state, line, material, collectionType, latitude, longitude, radius } = filters; // 'material' legado
     
     const where = {};
     
-    if (material) {
-      where.acceptedMaterials = { has: material };
+    if (line) {
+      where.acceptedLines = { has: line };
+    } else if (material) { // suporte legado
+      where.acceptedLines = { has: material };
     }
 
     if (collectionType) {
@@ -175,7 +179,7 @@ export default class CollectorService extends BaseService {
    * Atualiza coletor
    */
   async updateCollector(id, data) {
-    const { phone, companyName, tradeName, cnpj, description, operatingHours, collectionType, acceptedMaterials, headquarters } = data;
+    const { phone, companyName, tradeName, cnpj, description, operatingHours, collectionType, acceptedLines, acceptedMaterials, headquarters } = data;
 
     // Verifica se coletor existe
     const collector = await this.collectorRepo.findById(id);
@@ -204,7 +208,7 @@ export default class CollectorService extends BaseService {
       description,
       operatingHours,
       collectionType,
-      acceptedMaterials,
+      acceptedLines: acceptedLines || acceptedMaterials,
       headquarters
     });
   }
@@ -220,9 +224,9 @@ export default class CollectorService extends BaseService {
    * Cria ponto de coleta
    */
   async createCollectionPoint(collectorId, data) {
-    const { name, description, addressType, addressName, number, additionalInfo, 
-            neighborhood, postalCode, city, state, latitude, longitude, 
-            operatingHours, acceptedMaterials } = data;
+        const { name, description, addressType, addressName, number, additionalInfo, 
+          neighborhood, postalCode, city, state, latitude, longitude, 
+          operatingHours, acceptedLines, acceptedMaterials } = data;
 
     // Validar campos obrigatórios
     const required = ['name', 'addressType', 'addressName', 'number', 'neighborhood', 'postalCode', 'city', 'state'];
@@ -248,7 +252,7 @@ export default class CollectorService extends BaseService {
       latitude,
       longitude,
       operatingHours,
-      acceptedMaterials: acceptedMaterials || [],
+      acceptedLines: acceptedLines || acceptedMaterials || [],
       collectorId
     });
   }

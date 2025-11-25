@@ -1,3 +1,5 @@
+import { Prisma } from '@prisma/client';
+
 /**
  * ClientRepository - Encapsula acesso ao banco para operações com clientes
  */
@@ -135,24 +137,24 @@ export default class ClientRepository {
    * Busca CPF existente (normalizado)
    */
   async findExistingCpf(cpf) {
-    const [result] = await this.prisma.$queryRaw`
-      SELECT id FROM "Individual" 
+    const result = await this.prisma.$queryRaw(
+      Prisma.sql`SELECT id FROM "Individual" 
       WHERE regexp_replace(cpf, '\\D', '', 'g') = ${cpf} 
-      LIMIT 1
-    `;
-    return result;
+      LIMIT 1`
+    );
+    return result[0];
   }
 
   /**
    * Busca CNPJ existente (normalizado)
    */
   async findExistingCnpj(cnpj) {
-    const [result] = await this.prisma.$queryRaw`
-      SELECT id FROM "Company" 
+    const result = await this.prisma.$queryRaw(
+      Prisma.sql`SELECT id FROM "Company" 
       WHERE regexp_replace(cnpj, '\\D', '', 'g') = ${cnpj} 
-      LIMIT 1
-    `;
-    return result;
+      LIMIT 1`
+    );
+    return result[0];
   }
 
   /**
@@ -271,24 +273,26 @@ export default class ClientRepository {
    * Verifica CPF já cadastrado (com exceção de um clientId específico)
    */
   async checkCpfConflict(cpf, excludeClientId) {
-    const [result] = await this.prisma.$queryRaw`
-      SELECT id, "clientId" FROM "Individual" 
+    const result = await this.prisma.$queryRaw(
+      Prisma.sql`SELECT id, "clientId" FROM "Individual" 
       WHERE regexp_replace(cpf, '\\D', '', 'g') = ${cpf} 
-      LIMIT 1
-    `;
-    return result && result.clientId !== excludeClientId ? result : null;
+      LIMIT 1`
+    );
+    const row = result[0];
+    return row && row.clientId !== excludeClientId ? row : null;
   }
 
   /**
    * Verifica CNPJ já cadastrado (com exceção de um clientId específico)
    */
   async checkCnpjConflict(cnpj, excludeClientId) {
-    const [result] = await this.prisma.$queryRaw`
-      SELECT id, "clientId" FROM "Company" 
+    const result = await this.prisma.$queryRaw(
+      Prisma.sql`SELECT id, "clientId" FROM "Company" 
       WHERE regexp_replace(cnpj, '\\D', '', 'g') = ${cnpj} 
-      LIMIT 1
-    `;
-    return result && result.clientId !== excludeClientId ? result : null;
+      LIMIT 1`
+    );
+    const row = result[0];
+    return row && row.clientId !== excludeClientId ? row : null;
   }
 
   /**

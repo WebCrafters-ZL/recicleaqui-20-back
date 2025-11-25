@@ -325,7 +325,7 @@ Cria um novo coletor com sede e pontos de coleta.
   "description": "Empresa especializada em reciclagem de plástico e papel",
   "operatingHours": "Seg-Sex: 8h-18h",
   "collectionType": "BOTH",
-  "acceptedMaterials": ["plastico", "papel", "papelao", "metal"],
+  "acceptedLines": ["VERDE", "AZUL", "MARROM"],
   "headquarters": {
     "addressType": "Rua",
     "addressName": "Industrial",
@@ -351,7 +351,7 @@ Cria um novo coletor com sede e pontos de coleta.
       "latitude": -22.4000,
       "longitude": -47.5500,
       "operatingHours": "Seg-Sab: 7h-19h",
-      "acceptedMaterials": ["plastico", "papel"]
+      "acceptedLines": ["VERDE", "AZUL"]
     }
   ]
 }
@@ -383,7 +383,7 @@ Obtém dados completos de um coletor por ID (inclui sede e pontos de coleta).
   "description": "Empresa especializada em reciclagem de plástico e papel",
   "operatingHours": "Seg-Sex: 8h-18h",
   "collectionType": "BOTH",
-  "acceptedMaterials": ["plastico", "papel", "papelao", "metal"],
+  "acceptedLines": ["VERDE", "AZUL", "MARROM"],
   "headquarters": {
     "addressType": "Rua",
     "addressName": "Industrial",
@@ -398,11 +398,149 @@ Obtém dados completos de um coletor por ID (inclui sede e pontos de coleta).
       "name": "Ponto Centro",
       "city": "Rio Claro",
       "state": "SP",
-      "isActive": true
+      "isActive": true,
+      "acceptedLines": ["VERDE", "AZUL"]
     }
   ]
 }
 ```
+
+### 4. Descartes (`/api/v1/discards`)
+
+Fluxo para o cliente registrar descarte de resíduos em ponto de coleta ou solicitar coleta domiciliar.
+
+#### Enum de Linhas de Materiais
+As linhas aceitas são pré-definidas:
+```
+VERDE | MARROM | AZUL | BRANCA
+```
+Cada coletor cadastra um conjunto em `acceptedLines`. Cada ponto de coleta cadastra um subconjunto em `acceptedLines` próprio.
+
+#### Modelos Principais
+
+`Discard`:
+```json
+{
+  "id": 1,
+  "clientId": 10,
+  "mode": "PICKUP", // ou COLLECTION_POINT
+  "lines": ["VERDE", "AZUL"],
+  "collectionPointId": null,
+  "status": "PENDING", // PENDING | OFFERED | SCHEDULED | CANCELLED | COMPLETED
+  "scheduledSlot": null,
+  "createdAt": "2025-11-25T08:00:00Z"
+}
+```
+
+`Offer` (proposta de coleta feita por coletor):
+```json
+{
+  "id": 3,
+  "discardId": 1,
+  "collectorId": 5,
+  "proposedSlots": [
+    { "date": "2025-11-27", "start": "09:00", "end": "10:00" },
+    { "date": "2025-11-27", "start": "14:00", "end": "15:00" }
+  ],
+  "acceptedSlot": null,
+  "status": "PENDING"
+}
+```
+
+#### Registrar Descarte
+`POST /api/v1/discards`
+
+Payload para ponto de coleta:
+```json
+{
+  "clientId": 10,
+  "mode": "COLLECTION_POINT",
+  "lines": ["VERDE", "AZUL"],
+  "collectionPointId": 22,
+  "description": "Latas e jornais"
+}
+```
+
+Payload para coleta domiciliar:
+```json
+{
+  "clientId": 10,
+  "mode": "PICKUP",
+  "lines": ["VERDE", "MARROM"],
+  "description": "Vidro limpo e resíduos orgânicos secos"
+}
+```
+
+Resposta (201):
+```json
+{
+  "id": 40,
+  "status": "PENDING",
+  "mode": "PICKUP",
+  "lines": ["VERDE", "MARROM"]
+}
+```
+
+#### Listar Pontos Elegíveis
+`POST /api/v1/discards/eligible-points?lines=VERDE,AZUL`
+
+Body contendo endereço do cliente (exemplo simplificado):
+```json
+{
+  "address": {
+    "city": "São Paulo",
+    "state": "SP",
+    "latitude": -23.5505,
+    "longitude": -46.6333
+  }
+}
+```
+Retorna lista ordenada por proximidade.
+
+#### Listar Descartes Pendentes para Coletor (Pickup)
+`GET /api/v1/discards/pending-pickup/:collectorId`
+Retorna descartes `PENDING` cujo conjunto de linhas está contido em `acceptedLines` do coletor.
+
+#### Criar Oferta
+`POST /api/v1/discards/:discardId/offers`
+```json
+{
+  "collectorId": 5,
+  "proposedSlots": [
+    { "date": "2025-11-28", "start": "08:00", "end": "09:00" },
+    { "date": "2025-11-28", "start": "16:00", "end": "17:00" }
+  ]
+}
+```
+Status do descarte muda para `OFFERED`.
+
+#### Aceitar Oferta
+`POST /api/v1/discards/offers/:offerId/accept`
+```json
+{ "chosenSlotIndex": 1 }
+```
+Atualiza `Offer.status` para `ACCEPTED` e `Discard.status` para `SCHEDULED`.
+
+#### Rejeitar Oferta
+`POST /api/v1/discards/offers/:offerId/reject`
+Retorna descarte para `PENDING`.
+
+#### Cancelar Descarte
+`POST /api/v1/discards/:discardId/cancel`
+Altera status para `CANCELLED` (se não estiver COMPLETED).
+
+#### Concluir Descarte
+`POST /api/v1/discards/:discardId/complete`
+Altera status para `COMPLETED`.
+
+### Observações do Fluxo de Descarte
+- Apenas descartes `PICKUP` recebem ofertas.
+- Coletor só pode ofertar se aceitar todas as linhas do descarte.
+- Rejeição de oferta retorna descarte ao status `PENDING` para outros coletores responderem.
+- `scheduledSlot` é gravado após aceitação de oferta.
+
+### Campos Legados
+`acceptedMaterials` foi substituído por `acceptedLines`. Requisições antigas ainda funcionam se enviarem `acceptedMaterials` (fallback interno), mas recomenda-se migração.
 
 ### Exemplos de Respostas de Erro
 
@@ -505,14 +643,16 @@ O projeto utiliza Prisma ORM com PostgreSQL. Principais modelos:
 - **Collector** - Empresas coletoras
   - **CollectorHeadquarters** - Sede da empresa
   - **CollectionPoint** - Pontos de coleta
+  - **Discard / Offer** - Fluxo de descarte e propostas de horários
 
 ### Migrations
 
-As migrations estão em `/prisma/migrations`:
+As migrations estão em `/prisma/migrations` (principais):
 - `20250924132924_user` - Tabela de usuários
 - `20250925133408_client` - Tabelas de clientes
 - `20251010011449_adjust_sizes` - Ajustes de tamanho de campos
 - `20251113042943_add_collector` - Tabelas de coletores
+- `20251125043706_discard` - Fluxo de descarte, ofertas e enum de linhas
 
 ⚠️ **Importante:** Revise as migrations antes de aplicar em produção!
 

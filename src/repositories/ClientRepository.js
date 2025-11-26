@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { enrichAddressWithCoordinates } from '../utils/GeocodingUtils.js';
 
 /**
  * ClientRepository - Encapsula acesso ao banco para operações com clientes
@@ -12,6 +13,12 @@ export default class ClientRepository {
    * Cria cliente tipo Individual com transação
    */
   async createIndividual({ email, password, phone, firstName, lastName, cpf, address, avatarUrl }) {
+    // Geocodifica o endereço antes da transação
+    let enrichedAddress = null;
+    if (address) {
+      enrichedAddress = await enrichAddressWithCoordinates(address);
+    }
+
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({ 
         data: { email, password } 
@@ -35,9 +42,9 @@ export default class ClientRepository {
         }
       });
 
-      if (address) {
+      if (enrichedAddress) {
         await tx.address.create({ 
-          data: { ...address, clientId: client.id } 
+          data: { ...enrichedAddress, clientId: client.id } 
         });
       }
 
@@ -49,6 +56,12 @@ export default class ClientRepository {
    * Cria cliente tipo Company com transação
    */
   async createCompany({ email, password, phone, companyName, tradeName, cnpj, address, avatarUrl }) {
+    // Geocodifica o endereço antes da transação
+    let enrichedAddress = null;
+    if (address) {
+      enrichedAddress = await enrichAddressWithCoordinates(address);
+    }
+
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({ 
         data: { email, password } 
@@ -72,9 +85,9 @@ export default class ClientRepository {
         } 
       });
 
-      if (address) {
+      if (enrichedAddress) {
         await tx.address.create({ 
-          data: { ...address, clientId: client.id } 
+          data: { ...enrichedAddress, clientId: client.id } 
         });
       }
 
@@ -161,6 +174,12 @@ export default class ClientRepository {
    * Atualiza cliente Individual com transação
    */
   async updateIndividual(id, { phone, firstName, lastName, cpf, address, avatarUrl }) {
+    // Geocodifica o endereço antes da transação
+    let enrichedAddress = null;
+    if (address) {
+      enrichedAddress = await enrichAddressWithCoordinates(address);
+    }
+
     return this.prisma.$transaction(async (tx) => {
       if (phone || avatarUrl !== undefined) {
         const updateData = { editedAt: new Date() };
@@ -185,7 +204,7 @@ export default class ClientRepository {
         });
       }
 
-      if (address) {
+      if (enrichedAddress) {
         const existing = await tx.address.findUnique({ 
           where: { clientId: id } 
         }).catch(() => null);
@@ -193,11 +212,11 @@ export default class ClientRepository {
         if (existing) {
           await tx.address.update({ 
             where: { clientId: id }, 
-            data: { ...address, editedAt: new Date() } 
+            data: { ...enrichedAddress, editedAt: new Date() } 
           });
         } else {
           await tx.address.create({ 
-            data: { ...address, clientId: id } 
+            data: { ...enrichedAddress, clientId: id } 
           });
         }
       }
@@ -217,6 +236,12 @@ export default class ClientRepository {
    * Atualiza cliente Company com transação
    */
   async updateCompany(id, { phone, companyName, tradeName, cnpj, address, avatarUrl }) {
+    // Geocodifica o endereço antes da transação
+    let enrichedAddress = null;
+    if (address) {
+      enrichedAddress = await enrichAddressWithCoordinates(address);
+    }
+
     return this.prisma.$transaction(async (tx) => {
       if (phone || avatarUrl !== undefined) {
         const updateData = { editedAt: new Date() };
@@ -241,7 +266,7 @@ export default class ClientRepository {
         });
       }
 
-      if (address) {
+      if (enrichedAddress) {
         const existing = await tx.address.findUnique({ 
           where: { clientId: id } 
         }).catch(() => null);
@@ -249,11 +274,11 @@ export default class ClientRepository {
         if (existing) {
           await tx.address.update({ 
             where: { clientId: id }, 
-            data: { ...address, editedAt: new Date() } 
+            data: { ...enrichedAddress, editedAt: new Date() } 
           });
         } else {
           await tx.address.create({ 
-            data: { ...address, clientId: id } 
+            data: { ...enrichedAddress, clientId: id } 
           });
         }
       }

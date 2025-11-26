@@ -1,28 +1,22 @@
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+import JwtUtils from '../utils/JwtUtils.js';
 
 /**
  * AuthMiddleware - Valida tokens JWT nas requisições
  * Pode ser expandido para incluir roles, permissions, etc.
  */
 class AuthMiddleware {
-  constructor(jwtSecret = JWT_SECRET) {
-    this.jwtSecret = jwtSecret;
-  }
-
   /**
    * Middleware que valida o token JWT e adiciona o usuário decodificado em req.user
    */
   required = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const token = JwtUtils.extractFromHeader(req.headers.authorization);
+    
+    if (!token) {
       return res.status(401).json({ message: 'Token não fornecido' });
     }
     
-    const token = authHeader.split(' ')[1];
     try {
-      const decoded = jwt.verify(token, this.jwtSecret);
+      const decoded = JwtUtils.verify(token);
       req.user = decoded;
       next();
     } catch (err) {
@@ -46,7 +40,7 @@ class AuthMiddleware {
   };
 }
 
-// Instância singleton para compatibilidade com código existente
+// Instância singleton
 const authMiddleware = new AuthMiddleware();
 
 // Export da função middleware para compatibilidade

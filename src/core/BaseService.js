@@ -1,3 +1,5 @@
+import HttpErrorUtils from '../utils/HttpErrorUtils.js';
+
 /**
  * Base Service - Fornece estrutura comum para services
  */
@@ -6,7 +8,7 @@ export default class BaseService {
    * Helper para criar erro com status HTTP
    */
   createError(message, status = 400) {
-    return Object.assign(new Error(message), { status });
+    return HttpErrorUtils.createError(message, status);
   }
 
   /**

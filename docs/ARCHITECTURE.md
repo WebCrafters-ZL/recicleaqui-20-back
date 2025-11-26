@@ -50,8 +50,18 @@ recicleaqui-20-back/
 │   │   ├── DiscardService.js
 │   │   └── EmailService.js
 │   └── utils/                  # Utilitários
+│       ├── validators/         # Validadores especializados
+│       │   ├── EmailValidator.js
+│       │   ├── DocumentValidator.js
+│       │   ├── PhoneValidator.js
+│       │   └── MaterialValidator.js
+│       ├── ConfigUtils.js
+│       ├── Constants.js
+│       ├── FormatUtils.js
 │       ├── GeocodingUtils.js
 │       ├── HashUtils.js
+│       ├── HttpErrorUtils.js
+│       ├── JwtUtils.js
 │       ├── Logger.js
 │       └── Validators.js
 ├── .env.example                # Exemplo de variáveis de ambiente
@@ -192,10 +202,19 @@ class ClientRepository {
 ### 6. Utils (Utilitários)
 **Responsabilidade:** Funções auxiliares reutilizáveis
 
+📋 **Para documentação completa dos utilitários, consulte [UTILS.md](UTILS.md)**
+
+Principais módulos:
+- **ConfigUtils:** Gerenciamento centralizado de variáveis de ambiente
+- **Constants:** Constantes da aplicação (linhas de material, roles, regex)
+- **HttpErrorUtils:** Criação padronizada de erros HTTP
+- **JwtUtils:** Geração e validação de tokens JWT
+- **FormatUtils:** Formatação de CPF, CNPJ, telefone, moeda, data
 - **GeocodingUtils:** Geocodificação de endereços via Nominatim
 - **HashUtils:** Hash e comparação de senhas com bcrypt
 - **Logger:** Sistema de logs com Winston
-- **Validators:** Validação de CPF, CNPJ, email, telefone
+- **Validators:** Interface unificada para validações
+- **validators/**: Validadores especializados (Email, Document, Phone, Material)
 
 ---
 

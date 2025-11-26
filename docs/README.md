@@ -30,6 +30,12 @@ Bem-vindo à documentação completa do projeto RecicleAqui 2.0 Backend.
   - Validação de dados
   - Boas práticas e checklist
 
+- **[Utilitários](UTILS.md)** - Módulos utilitários e helpers
+  - Validadores (Email, CPF, CNPJ, Telefone, Material)
+  - Formatadores de dados
+  - Gerenciamento de configurações
+  - Utilitários de JWT, Hash e HTTP
+
 ### Funcionalidades Específicas
 
 - **[Geocodificação](GEOCODING.md)** - Sistema de geocodificação de endereços
@@ -58,8 +64,10 @@ Bem-vindo à documentação completa do projeto RecicleAqui 2.0 Backend.
 
 **Precisa encontrar algo específico?**
 
-- **JWT e autenticação:** [API](API.md#1-autenticação-apiv1auth) | [Segurança](SECURITY.md#autenticação-e-autorização)
-- **Validação de CPF/CNPJ:** [Segurança](SECURITY.md#validação-de-dados)
+- **JWT e autenticação:** [API](API.md#1-autenticação-apiv1auth) | [Segurança](SECURITY.md#autenticação-e-autorização) | [Utilitários](UTILS.md#jwtutils)
+- **Validação de CPF/CNPJ:** [Segurança](SECURITY.md#validação-de-dados) | [Utilitários](UTILS.md#validators)
+- **Formatação de dados:** [Utilitários](UTILS.md#formatutils)
+- **Configurações:** [Utilitários](UTILS.md#configutils)
 - **Geocodificação:** [GEOCODING.md](GEOCODING.md)
 - **Estrutura de pastas:** [ARCHITECTURE.md](ARCHITECTURE.md#estrutura-de-diretórios)
 - **Schema do banco:** [DATABASE.md](DATABASE.md#modelos-do-banco-de-dados)
@@ -88,6 +96,7 @@ Esta documentação deve ser mantida atualizada:
 - **Ao modificar arquitetura:** Atualizar [ARCHITECTURE.md](ARCHITECTURE.md)
 - **Ao adicionar migrations:** Atualizar [DATABASE.md](DATABASE.md)
 - **Ao implementar segurança:** Atualizar [SECURITY.md](SECURITY.md)
+- **Ao criar utilitários:** Atualizar [UTILS.md](UTILS.md)
 
 ---
 

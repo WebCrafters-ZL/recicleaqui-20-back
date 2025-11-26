@@ -19,5 +19,7 @@ const asyncHandler = (fn) => (req, res, next) =>
   Promise.resolve(fn(req, res, next)).catch(next);
 
 router.post('/login', apiLimiter, asyncHandler(authController.login));
+router.post('/forgot-password', apiLimiter, asyncHandler(authController.forgotPassword));
+router.post('/reset-password', apiLimiter, asyncHandler(authController.resetPassword));
 
 export default router;

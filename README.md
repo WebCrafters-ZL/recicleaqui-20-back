@@ -39,6 +39,7 @@ RecicleAqui 2.0 é uma plataforma que facilita o processo de reciclagem, conecta
 - **[PostgreSQL](https://www.postgresql.org/)** - Banco de dados relacional
 - **[JWT](https://jwt.io/)** - Autenticação baseada em tokens
 - **[Bcrypt](https://www.npmjs.com/package/bcryptjs)** - Hash de senhas
+- **[Nodemailer](https://nodemailer.com/)** - Envio de emails (recuperação de senha, notificações)
 - **[Helmet](https://helmetjs.github.io/)** - Segurança de headers HTTP
 - **[Winston](https://github.com/winstonjs/winston)** - Sistema de logs
 - **[ESLint](https://eslint.org/)** - Linter e formatação de código
@@ -75,6 +76,21 @@ DATABASE_URL="postgresql://usuario:senha@localhost:5432/recicleaqui"
 JWT_SECRET="seu-secret-jwt-super-seguro"
 PORT=3000
 NODE_ENV=production
+
+# Recuperação de senha / Email
+USE_ETHEREAL=true                 # Dev: gera conta temporária Ethereal
+EMAIL_FROM="no-reply@exemplo.com" # Remetente padrão dos emails
+
+# Links para reset de senha
+FRONTEND_URL_WEB="https://links.seudominio.com"   # Universal/App Link (HTTPS)
+FRONTEND_URL_DEEP="recicleaqui://"                # Deep link do aplicativo móvel
+# (Compatibilidade legado) FRONTEND_URL="http://localhost:3000"
+
+# SMTP real (produçao - definir USE_ETHEREAL=false)
+# SMTP_HOST="smtp.seuprovedor.com"
+# SMTP_PORT=587
+# SMTP_USER="usuario-smtp"
+# SMTP_PASS="senha-smtp"
 ```
 
 Para desenvolvimento, crie também o `.env.development.local`:
@@ -203,6 +219,51 @@ Autentica usuário e retorna token JWT.
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
+
+#### POST `/api/v1/auth/forgot-password`
+Inicia fluxo de recuperação de senha. Sempre responde mensagem genérica para não expor existência do email.
+
+**Payload:**
+```json
+{ "email": "usuario@example.com" }
+```
+**Resposta (200):**
+```json
+{ "message": "Se o email existir, enviaremos instruções." }
+```
+
+#### POST `/api/v1/auth/reset-password`
+Define nova senha usando token enviado por email (válido por 1 hora).
+
+**Payload:**
+```json
+{ "token": "<resetToken>", "password": "NovaSenha123" }
+```
+**Resposta (200):**
+```json
+{ "message": "Senha atualizada com sucesso." }
+```
+
+##### Fluxo de Recuperação
+1. Usuário solicita `forgot-password` → sistema gera `resetToken` e salva `resetTokenGeneratedAt`.
+2. Email enviado com dois links (se configurados):
+  - Web (universal/app link): `${FRONTEND_URL_WEB}/reset-password?token=<resetToken>`
+  - Deep link: `${FRONTEND_URL_DEEP}reset-password?token=<resetToken>`
+3. Front-end envia `reset-password` com token e nova senha.
+4. Serviço valida: token existe, não expirou (≤ 1h) e atualiza a senha (hash bcrypt) limpando campos de reset.
+
+##### Campos no Modelo `User`
+- `resetToken` (String?)
+- `resetTokenGeneratedAt` (DateTime?)
+
+##### Ambiente de Desenvolvimento (Ethereal)
+Se `USE_ETHEREAL=true` ou SMTP ausente, é criada automaticamente uma conta de teste e o log mostra a URL de preview do email (Nodemailer Ethereal). Abra a URL para visualizar o email real. O email inclui webLink e deepLink quando configurados.
+
+##### Boas Práticas Implementadas
+- Token aleatório criptograficamente seguro (`crypto.randomBytes(32)`)
+- Expiração de 1 hora controlada por diferença de tempo
+- Resposta neutra em `forgot-password` para evitar enumeração de usuários
+- Limpeza segura de `resetToken` e `resetTokenGeneratedAt` após redefinição
 
 ### 2. Clientes (`/api/v1/clients`)
 
@@ -636,6 +697,7 @@ winston.createLogger({
 O projeto utiliza Prisma ORM com PostgreSQL. Principais modelos:
 
 - **User** - Usuários do sistema (base para todos os tipos)
+  - Campos de recuperação de senha: `resetToken`, `resetTokenGeneratedAt`
 - **Client** - Clientes (PF ou PJ)
   - **Individual** - Dados de pessoa física
   - **Company** - Dados de pessoa jurídica
@@ -653,6 +715,7 @@ As migrations estão em `/prisma/migrations` (principais):
 - `20251010011449_adjust_sizes` - Ajustes de tamanho de campos
 - `20251113042943_add_collector` - Tabelas de coletores
 - `20251125043706_discard` - Fluxo de descarte, ofertas e enum de linhas
+- (Campos de recuperação de senha já presentes no modelo `User` para fluxo de reset)
 
 ⚠️ **Importante:** Revise as migrations antes de aplicar em produção!
 
@@ -676,6 +739,7 @@ Requisição → Router → Controller → Service → Repository → Database
 4. **Repositories** - Acesso ao banco de dados via Prisma
 5. **Middlewares** - Interceptadores de requisição (auth, CORS, etc.)
 6. **Utils** - Funções utilitárias (validadores, hash, logger)
+7. **EmailService** - Envio de emails (recuperação de senha via Nodemailer/Ethereal)
 
 ### Classes Base
 

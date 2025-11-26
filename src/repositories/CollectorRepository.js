@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { enrichAddressWithCoordinates } from '../utils/GeocodingUtils.js';
 
 /**
  * CollectorRepository - Encapsula acesso ao banco para operações com coletores
@@ -25,6 +26,17 @@ export default class CollectorRepository {
     headquarters,
     collectionPoints
   }) {
+    // Geocodifica headquarters antes da transação
+    const enrichedHeadquarters = await enrichAddressWithCoordinates(headquarters);
+
+    // Geocodifica pontos de coleta antes da transação
+    let enrichedCollectionPoints = null;
+    if (collectionPoints && collectionPoints.length > 0) {
+      enrichedCollectionPoints = await Promise.all(
+        collectionPoints.map(point => enrichAddressWithCoordinates(point))
+      );
+    }
+
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({ 
         data: { 
@@ -50,14 +62,14 @@ export default class CollectorRepository {
 
       await tx.collectorHeadquarters.create({ 
         data: { 
-          ...headquarters, 
+          ...enrichedHeadquarters, 
           collectorId: collector.id 
         } 
       });
 
-      if (collectionPoints && collectionPoints.length > 0) {
+      if (enrichedCollectionPoints && enrichedCollectionPoints.length > 0) {
         await tx.collectionPoint.createMany({
-          data: collectionPoints.map(point => ({
+          data: enrichedCollectionPoints.map(point => ({
             ...point,
             collectorId: collector.id
           }))
@@ -177,6 +189,12 @@ export default class CollectorRepository {
    * Atualiza coletor com transação
    */
   async update(id, { phone, companyName, tradeName, cnpj, description, operatingHours, collectionType, acceptedLines, headquarters }) {
+    // Geocodifica headquarters antes da transação
+    let enrichedHeadquarters = null;
+    if (headquarters) {
+      enrichedHeadquarters = await enrichAddressWithCoordinates(headquarters);
+    }
+
     return this.prisma.$transaction(async (tx) => {
       const updateData = {};
       if (phone) updateData.phone = phone;
@@ -193,7 +211,7 @@ export default class CollectorRepository {
         await tx.collector.update({ where: { id }, data: updateData });
       }
 
-      if (headquarters) {
+      if (enrichedHeadquarters) {
         const existing = await tx.collectorHeadquarters.findUnique({ 
           where: { collectorId: id } 
         }).catch(() => null);
@@ -201,11 +219,11 @@ export default class CollectorRepository {
         if (existing) {
           await tx.collectorHeadquarters.update({ 
             where: { collectorId: id }, 
-            data: { ...headquarters, editedAt: new Date() } 
+            data: { ...enrichedHeadquarters, editedAt: new Date() } 
           });
         } else {
           await tx.collectorHeadquarters.create({ 
-            data: { ...headquarters, collectorId: id } 
+            data: { ...enrichedHeadquarters, collectorId: id } 
           });
         }
       }
@@ -240,17 +258,19 @@ export default class CollectorRepository {
    * Cria ponto de coleta
    */
   async createCollectionPoint(data) {
-    return this.prisma.collectionPoint.create({ data });
+    const enrichedData = await enrichAddressWithCoordinates(data);
+    return this.prisma.collectionPoint.create({ data: enrichedData });
   }
 
   /**
    * Atualiza ponto de coleta
    */
   async updateCollectionPoint(id, data) {
+    const enrichedData = await enrichAddressWithCoordinates(data);
     return this.prisma.collectionPoint.update({
       where: { id },
       data: {
-        ...data,
+        ...enrichedData,
         editedAt: new Date()
       }
     });

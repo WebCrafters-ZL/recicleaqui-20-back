@@ -1,4 +1,5 @@
 import cors from 'cors';
+import ConfigUtils from '../utils/ConfigUtils.js';
 
 /**
  * CorsConfig - Configuração de CORS para a aplicação
@@ -9,7 +10,7 @@ class CorsConfig {
    */
   static getMiddleware(options = {}) {
     const corsOptions = {
-      origin: options.origin || process.env.FRONTEND_URL || 'http://localhost:5173',
+      origin: options.origin || ConfigUtils.FRONTEND_URL,
       credentials: options.credentials !== undefined ? options.credentials : true,
       ...options
     };

@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import logger from '../utils/Logger.js';
+import ConfigUtils from '../utils/ConfigUtils.js';
 
 /**
  * EmailService - responsável por enviar emails (ex: recuperação de senha)
@@ -12,11 +13,11 @@ export default class EmailService {
   }
 
   async createTransport() {
-    const useEthereal = process.env.USE_ETHEREAL === 'true';
-    const host = process.env.SMTP_HOST;
-    const port = parseInt(process.env.SMTP_PORT || '587', 10);
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
+    const useEthereal = ConfigUtils.USE_ETHEREAL;
+    const host = ConfigUtils.SMTP_HOST;
+    const port = ConfigUtils.SMTP_PORT;
+    const user = ConfigUtils.SMTP_USER;
+    const pass = ConfigUtils.SMTP_PASS;
 
     if (useEthereal || !host || !user || !pass) {
       // Fallback para conta Ethereal automática
@@ -51,7 +52,7 @@ export default class EmailService {
 
   async sendPasswordResetEmail(to, links) {
     const transporter = await this.getTransporter();
-    const from = process.env.EMAIL_FROM || 'no-reply@example.com';
+    const from = ConfigUtils.EMAIL_FROM;
     const subject = 'Recuperação de senha';
     const { webLink, deepLink } = typeof links === 'string' ? { webLink: links, deepLink: null } : links;
     const deepSection = deepLink

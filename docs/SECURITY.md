@@ -175,6 +175,8 @@ router.delete('/users/:id',
 
 ## 🔑 Hash de Senhas
 
+📋 **Para documentação completa, consulte [UTILS.md](UTILS.md#hashutils)**
+
 Utiliza **bcrypt** com salt para armazenamento seguro de senhas:
 
 ```javascript
@@ -215,6 +217,8 @@ if (!isValidPassword) {
 ---
 
 ## ✅ Validação de Dados
+
+📋 **Para documentação completa dos validadores, consulte [UTILS.md](UTILS.md#validators)**
 
 ### Validadores Personalizados
 

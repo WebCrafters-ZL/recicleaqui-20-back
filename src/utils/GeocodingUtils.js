@@ -1,12 +1,10 @@
 import logger from './Logger.js';
+import { GEOCODING } from './Constants.js';
 
 /**
  * GeocodingUtils - Utilitários para geocodificação de endereços
  * Utiliza a API Nominatim do OpenStreetMap
  */
-
-const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org/search';
-const USER_AGENT = 'RecicleAqui/2.0'; // Identificação da aplicação conforme políticas do Nominatim
 
 /**
  * Aguarda um tempo especificado
@@ -57,20 +55,20 @@ export async function geocodeAddress(address) {
 
     logger.info(`Geocodificando endereço: ${query}`);
 
-    // Adiciona delay de 1 segundo entre requisições para respeitar política de uso do Nominatim
-    await sleep(1000);
+    // Adiciona delay entre requisições para respeitar política de uso do Nominatim
+    await sleep(GEOCODING.REQUEST_DELAY_MS);
 
     const params = new URLSearchParams({
       q: query,
       format: 'json',
       limit: '1',
-      countrycodes: 'br', // Restringe busca ao Brasil
+      countrycodes: GEOCODING.COUNTRY_CODE,
       addressdetails: '1'
     });
 
-    const response = await fetch(`${NOMINATIM_BASE_URL}?${params}`, {
+    const response = await fetch(`${GEOCODING.NOMINATIM_BASE_URL}?${params}`, {
       headers: {
-        'User-Agent': USER_AGENT,
+        'User-Agent': GEOCODING.USER_AGENT,
         'Accept': 'application/json'
       }
     });

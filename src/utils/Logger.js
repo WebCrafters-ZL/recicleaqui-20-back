@@ -1,5 +1,6 @@
 import { createLogger, format, transports } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
+import ConfigUtils from './ConfigUtils.js';
 
 /**
  * Logger - Gerencia logs da aplicação usando Winston
@@ -27,7 +28,7 @@ class Logger {
       transports: this.createTransports()
     });
 
-    if (process.env.NODE_ENV !== 'production') {
+    if (!ConfigUtils.isProduction) {
       logger.add(new transports.Console({
         format: format.combine(
           format.colorize(),

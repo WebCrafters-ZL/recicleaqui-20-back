@@ -40,7 +40,7 @@ Autentica usuário e retorna token JWT.
 ```
 
 ### POST `/api/v1/auth/forgot-password`
-Inicia fluxo de recuperação de senha. Sempre responde mensagem genérica para não expor existência do email.
+Inicia fluxo de recuperação de senha. Gera um código de 6 dígitos numéricos e envia por email. Sempre responde mensagem genérica para não expor existência do email.
 
 **Payload:**
 ```json
@@ -52,13 +52,17 @@ Inicia fluxo de recuperação de senha. Sempre responde mensagem genérica para 
 { "message": "Se o email existir, enviaremos instruções." }
 ```
 
+**Email enviado:**
+O usuário recebe um código de 6 dígitos numéricos (ex: `123456`) válido por 1 hora.
+
 ### POST `/api/v1/auth/reset-password`
-Define nova senha usando token enviado por email (válido por 1 hora).
+Define nova senha usando email e código de 6 dígitos enviado por email (válido por 1 hora).
 
 **Payload:**
 ```json
 { 
-  "token": "<resetToken>", 
+  "email": "usuario@example.com",
+  "code": "123456", 
   "password": "NovaSenha123" 
 }
 ```
@@ -68,14 +72,27 @@ Define nova senha usando token enviado por email (válido por 1 hora).
 { "message": "Senha atualizada com sucesso." }
 ```
 
+**Validações:**
+- Email deve corresponder ao usuário que solicitou o código
+- Código deve ser exatamente 6 dígitos numéricos
+- Código deve estar dentro do prazo de validade (1 hora)
+- Senha deve ter no mínimo 6 caracteres
+
 #### Fluxo de Recuperação de Senha
 
-1. Usuário solicita `forgot-password` → sistema gera `resetToken` e salva `resetTokenGeneratedAt`
-2. Email enviado com dois links (se configurados):
-   - Web (universal/app link): `${FRONTEND_URL_WEB}/reset-password?token=<resetToken>`
-   - Deep link: `${FRONTEND_URL_DEEP}reset-password?token=<resetToken>`
-3. Front-end envia `reset-password` com token e nova senha
-4. Serviço valida: token existe, não expirou (≤ 1h) e atualiza a senha (hash bcrypt) limpando campos de reset
+1. Usuário solicita `forgot-password` → sistema gera código de 6 dígitos numéricos (100000-999999) e salva `resetTokenGeneratedAt`
+2. Email enviado com o código formatado visualmente
+3. Front-end envia `reset-password` com email, código e nova senha
+4. Serviço valida:
+   - Email corresponde ao usuário
+   - Código está correto e é composto por 6 dígitos numéricos
+   - Código não expirou (≤ 1h)
+   - Atualiza a senha (hash bcrypt) e limpa campos de reset
+
+**Segurança:**
+- Validação combinada de email + código impede uso do código sem conhecer o email
+- Código numérico facilita digitação manual em dispositivos móveis
+- Resposta genérica não revela existência do email no sistema
 
 #### Ambiente de Desenvolvimento (Ethereal)
 

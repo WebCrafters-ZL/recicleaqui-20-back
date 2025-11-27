@@ -359,65 +359,78 @@ static async findById(id) {
 ### Fluxo Implementado
 
 1. **Solicitação de Reset:**
-   - Token gerado com `crypto.randomBytes(32)`
-   - Token armazenado com timestamp
-   - Email enviado com link temporário
+   - Código de 6 dígitos numéricos gerado aleatoriamente (100000-999999)
+   - Código armazenado no campo `resetToken` com timestamp
+   - Email enviado com código formatado visualmente
 
-2. **Validação do Token:**
-   - Verifica existência do token
+2. **Validação do Código:**
+   - Verifica correspondência de email + código
+   - Valida formato (6 dígitos numéricos)
    - Valida expiração (1 hora)
-   - Token usado uma única vez
+   - Código usado uma única vez
 
 3. **Reset de Senha:**
    - Nova senha com hash bcrypt
-   - Token e timestamp limpos
-   - Invalida todos os tokens JWT anteriores (opcional)
+   - Código e timestamp limpos
+   - Atualiza campo `editedAt`
 
 ```javascript
 // src/services/AuthService.js
-static async forgotPassword(email) {
-  const user = await AuthRepository.findByEmail(email);
+async requestPasswordReset(email) {
+  const user = await this.authRepo.findUserByEmail(email);
   
   // Resposta genérica para não expor existência do email
   if (!user) {
     return { message: 'Se o email existir, enviaremos instruções.' };
   }
 
-  // Gera token seguro
-  const resetToken = crypto.randomBytes(32).toString('hex');
-  const resetTokenGeneratedAt = new Date();
+  // Gera código de 6 dígitos numéricos
+  const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const generatedAt = new Date();
 
-  await AuthRepository.updateResetToken(user.id, resetToken, resetTokenGeneratedAt);
+  await this.authRepo.updateResetToken(user.id, resetCode, generatedAt);
   
-  // Envia email
-  await EmailService.sendPasswordReset(user.email, resetToken);
+  // Envia email com código
+  await this.emailService.sendPasswordResetEmail(user.email, resetCode);
   
   return { message: 'Se o email existir, enviaremos instruções.' };
 }
 
-static async resetPassword(token, newPassword) {
-  const user = await AuthRepository.findByResetToken(token);
+async resetPassword(email, code, newPassword) {
+  // Valida formato do código (6 dígitos)
+  if (!/^\d{6}$/.test(code)) {
+    throw this.createError('Código inválido', 400);
+  }
+
+  // Busca usuário por email E código
+  const user = await this.authRepo.findUserByEmailAndResetToken(email, code);
   
   if (!user) {
-    throw new Error('Token inválido ou expirado');
+    throw this.createError('E-mail ou código inválido/expirado', 400);
   }
 
   // Valida expiração (1 hora)
-  const hoursSinceGeneration = (Date.now() - user.resetTokenGeneratedAt) / (1000 * 60 * 60);
-  if (hoursSinceGeneration > 1) {
-    throw new Error('Token expirado');
+  const ageMs = Date.now() - new Date(user.resetTokenGeneratedAt).getTime();
+  if (ageMs > 60 * 60 * 1000) {
+    throw this.createError('Código inválido ou expirado', 400);
   }
 
   // Hash da nova senha
-  const hashedPassword = await HashUtils.hash(newPassword);
+  const hashedPassword = await hashPassword(newPassword);
 
-  // Atualiza senha e limpa token
-  await AuthRepository.updatePassword(user.id, hashedPassword);
-  await AuthRepository.clearResetToken(user.id);
+  // Atualiza senha e limpa código
+  await this.authRepo.updatePasswordAndClearReset(user.id, hashedPassword);
 
   return { message: 'Senha atualizada com sucesso.' };
 }
 ```
+
+**Vantagens de Segurança:**
+- Validação combinada (email + código) impede uso do código por terceiros
+- Código numérico facilita digitação manual e reduz erros
+- Resposta genérica não revela se email existe no sistema
+- Expiração de 1 hora limita janela de ataque
+- Código armazenado como string para preservar zeros à esquerda
 
 ---
 

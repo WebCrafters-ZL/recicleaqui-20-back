@@ -68,8 +68,8 @@ enum Role {
 - `email` - Email único do usuário
 - `password` - Senha com hash bcrypt
 - `role` - Tipo de usuário (CLIENT, COLLECTOR, ADMIN)
-- `resetToken` - Token temporário para recuperação de senha
-- `resetTokenGeneratedAt` - Timestamp de geração do token (validade: 1 hora)
+- `resetToken` - Código de 6 dígitos numéricos para recuperação de senha
+- `resetTokenGeneratedAt` - Timestamp de geração do código (validade: 1 hora)
 
 ---
 

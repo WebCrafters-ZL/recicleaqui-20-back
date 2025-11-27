@@ -105,8 +105,8 @@ A API está organizada em 4 módulos principais:
 
 ### 1. Autenticação (`/api/v1/auth`)
 - `POST /login` - Login com JWT
-- `POST /forgot-password` - Recuperação de senha
-- `POST /reset-password` - Redefinir senha com token
+- `POST /forgot-password` - Solicitar código de recuperação de senha (6 dígitos)
+- `POST /reset-password` - Redefinir senha com email e código
 
 ### 2. Clientes (`/api/v1/clients`)
 - `POST /individual` - Cadastro de pessoa física

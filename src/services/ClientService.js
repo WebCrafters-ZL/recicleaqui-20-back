@@ -1,5 +1,5 @@
 import BaseService from '../core/BaseService.js';
-import { hashPassword } from '../utils/HashUtils.js';
+import { hashPassword, comparePassword } from '../utils/HashUtils.js';
 import { isValidCNPJ, isValidCPF, isValidEmail, onlyDigits } from '../utils/Validators.js';
 
 /**
@@ -134,7 +134,7 @@ export default class ClientService extends BaseService {
    * Atualiza cliente Individual
    */
   async updateIndividualClient(id, data) {
-    const { phone, firstName, lastName, cpf, address, avatarUrl } = data;
+    const { phone, firstName, lastName, cpf, address, avatarUrl, email, password } = data;
 
     // Verifica se cliente existe
     const client = await this.clientRepo.findById(id);
@@ -142,24 +142,23 @@ export default class ClientService extends BaseService {
       throw this.createError('Cliente não encontrado', 404);
     }
 
-    // Valida CPF se fornecido
-    let normalizedCpf = null;
-    if (cpf) {
-      normalizedCpf = onlyDigits(cpf);
-      if (!isValidCPF(normalizedCpf)) {
-        throw this.createError('CPF inválido');
-      }
-      const conflict = await this.clientRepo.checkCpfConflict(normalizedCpf, id);
-      if (conflict) {
-        throw this.createError('CPF já cadastrado', 409);
-      }
+    // Bloqueia alterações de campos imutáveis
+    if (email !== undefined) {
+      throw this.createError('Email não pode ser alterado', 400);
+    }
+    if (password !== undefined) {
+      throw this.createError('Senha deve ser alterada em fluxo próprio', 400);
+    }
+    if (cpf !== undefined) {
+      throw this.createError('CPF não pode ser alterado', 400);
     }
 
     return this.clientRepo.updateIndividual(id, {
       phone,
       firstName,
       lastName,
-      cpf: normalizedCpf,
+      // Não permitir alteração de CPF
+      cpf: null,
       address,
       avatarUrl
     });
@@ -169,7 +168,7 @@ export default class ClientService extends BaseService {
    * Atualiza cliente Company
    */
   async updateCompanyClient(id, data) {
-    const { phone, companyName, tradeName, cnpj, address, avatarUrl } = data;
+    const { phone, companyName, tradeName, cnpj, address, avatarUrl, email, password } = data;
 
     // Verifica se cliente existe
     const client = await this.clientRepo.findById(id);
@@ -177,24 +176,23 @@ export default class ClientService extends BaseService {
       throw this.createError('Cliente não encontrado', 404);
     }
 
-    // Valida CNPJ se fornecido
-    let normalizedCnpj = null;
-    if (cnpj) {
-      normalizedCnpj = onlyDigits(cnpj);
-      if (!isValidCNPJ(normalizedCnpj)) {
-        throw this.createError('CNPJ inválido');
-      }
-      const conflict = await this.clientRepo.checkCnpjConflict(normalizedCnpj, id);
-      if (conflict) {
-        throw this.createError('CNPJ já cadastrado', 409);
-      }
+    // Bloqueia alterações de campos imutáveis
+    if (email !== undefined) {
+      throw this.createError('Email não pode ser alterado', 400);
+    }
+    if (password !== undefined) {
+      throw this.createError('Senha deve ser alterada em fluxo próprio', 400);
+    }
+    if (cnpj !== undefined) {
+      throw this.createError('CNPJ não pode ser alterado', 400);
     }
 
     return this.clientRepo.updateCompany(id, {
       phone,
       companyName,
       tradeName,
-      cnpj: normalizedCnpj,
+      // Não permitir alteração de CNPJ
+      cnpj: null,
       address,
       avatarUrl
     });
@@ -205,5 +203,26 @@ export default class ClientService extends BaseService {
    */
   async deleteClient(id) {
     return this.clientRepo.delete(id);
+  }
+
+  /**
+   * Altera senha do usuário dono do cliente
+   */
+  async changePassword(userId, currentPassword, newPassword) {
+    this.validateRequiredFields({ currentPassword, newPassword }, ['currentPassword', 'newPassword']);
+
+    const user = await this.clientRepo.findUserById(userId);
+    if (!user) {
+      throw this.createError('Usuário não encontrado', 404);
+    }
+
+    const isValid = await comparePassword(currentPassword, user.password);
+    if (!isValid) {
+      throw this.createError('Senha atual inválida', 400);
+    }
+
+    const hashed = await hashPassword(newPassword);
+    await this.clientRepo.updateUserPassword(userId, hashed);
+    return { userId };
   }
 }

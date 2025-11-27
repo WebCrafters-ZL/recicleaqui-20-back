@@ -52,6 +52,12 @@ router.put('/company/:id', authRequired, asyncHandler(async (req, res) => {
   return clientController.updateCompanyClient(req, res);
 }));
 
+// Rota para alteração de senha do cliente autenticado
+router.put('/password', authRequired, asyncHandler(async (req, res) => {
+  logger.info('Rota PUT /clients/password chamada');
+  return clientController.changePassword(req, res);
+}));
+
 router.delete('/:id', authRequired, asyncHandler(async (req, res) => {
   logger.info(`Rota DELETE /clients/${req.params.id} chamada`);
   return clientController.deleteClient(req, res);

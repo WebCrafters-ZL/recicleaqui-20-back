@@ -147,6 +147,13 @@ export default class ClientRepository {
   }
 
   /**
+   * Busca usuário por ID
+   */
+  async findUserById(id) {
+    return this.prisma.user.findUnique({ where: { id } });
+  }
+
+  /**
    * Busca CPF existente (normalizado)
    */
   async findExistingCpf(cpf) {
@@ -325,5 +332,15 @@ export default class ClientRepository {
    */
   async delete(id) {
     return this.prisma.client.delete({ where: { id } });
+  }
+
+  /**
+   * Atualiza a senha do usuário
+   */
+  async updateUserPassword(userId, hashedPassword) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword, editedAt: new Date() }
+    });
   }
 }

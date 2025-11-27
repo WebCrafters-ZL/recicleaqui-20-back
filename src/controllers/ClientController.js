@@ -17,6 +17,7 @@ export default class ClientController extends BaseController {
     this.deleteClient = this.deleteClient.bind(this);
     this.listAllClients = this.listAllClients.bind(this);
     this.getMe = this.getMe.bind(this);
+    this.changePassword = this.changePassword.bind(this);
   }
 
   async createIndividualClient(req, res) {
@@ -70,5 +71,20 @@ export default class ClientController extends BaseController {
     }
     const client = await this.clientService.getClientByUserId(userIdInt);
     return res.json(client);
+  }
+
+  async changePassword(req, res) {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Usuário não autenticado' });
+    }
+    const userIdInt = parseInt(userId, 10);
+    if (isNaN(userIdInt)) {
+      return res.status(400).json({ message: 'ID de usuário inválido' });
+    }
+
+    const { currentPassword, newPassword } = req.body || {};
+    const result = await this.clientService.changePassword(userIdInt, currentPassword, newPassword);
+    return res.status(200).json({ message: 'Senha alterada com sucesso', ...result });
   }
 }

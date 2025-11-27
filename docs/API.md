@@ -168,6 +168,24 @@ Atualiza dados de um cliente pessoa física.
 ### PUT `/api/v1/clients/company/:id`
 Atualiza dados de um cliente pessoa jurídica.
 
+### PUT `/api/v1/clients/password`
+Altera a senha do usuário autenticado (cliente). Requer JWT.
+
+**Payload:**
+
+```json
+{
+  "currentPassword": "SenhaAtual123",
+  "newPassword": "NovaSenha456"
+}
+```
+
+**Respostas:**
+- 200: `{ "message": "Senha alterada com sucesso", "userId": <id> }`
+- 400: `Senha atual inválida` ou campos obrigatórios ausentes
+- 401: Usuário não autenticado
+- 404: Usuário não encontrado
+
 ### DELETE `/api/v1/clients/:id`
 Remove um cliente do sistema.
 
@@ -175,9 +193,15 @@ Remove um cliente do sistema.
 Lista todos os clientes (uso administrativo).
 
 **Observações:**
-- Email, CPF e CNPJ são validados (incluindo dígitos verificadores)
+- Email, CPF e CNPJ são validados na criação (incluindo dígitos verificadores)
 - Senhas são armazenadas com hash bcrypt
 - Erros retornam status HTTP apropriado: 400 (validação), 409 (conflito), 404 (não encontrado), 500 (erro interno)
+
+#### Campos Imutáveis no Update de Cliente
+
+- `email`: não pode ser alterado via update de cliente
+- `cpf`/`cnpj`: não podem ser alterados após criação
+- `password`: alteração somente via endpoint dedicado `PUT /api/v1/clients/password`
 
 ---
 

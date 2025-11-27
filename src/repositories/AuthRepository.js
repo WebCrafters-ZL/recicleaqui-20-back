@@ -45,6 +45,18 @@ export default class AuthRepository {
   }
 
   /**
+   * Busca usuário pelo email e resetToken
+   */
+  async findUserByEmailAndResetToken(email, resetToken) {
+    return this.prisma.user.findFirst({
+      where: { 
+        email,
+        resetToken 
+      }
+    });
+  }
+
+  /**
    * Atualiza senha e limpa informações de reset
    */
   async updatePasswordAndClearReset(userId, newHashedPassword) {

@@ -69,4 +69,7 @@ router.get('/', asyncHandler(async (req, res) => {
   return clientController.listAllClients(req, res);
 }));
 
+// Rota para solicitar o envio do código de redefinição de senha
+router.post('/request-password-reset', clientController.requestPasswordReset);
+
 export default router;

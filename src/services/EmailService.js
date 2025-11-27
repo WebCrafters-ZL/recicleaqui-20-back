@@ -50,19 +50,14 @@ export default class EmailService {
     return this.transporter;
   }
 
-  async sendPasswordResetEmail(to, links) {
+  async sendPasswordResetEmail(to, code) {
     const transporter = await this.getTransporter();
     const from = ConfigUtils.EMAIL_FROM;
     const subject = 'Recuperação de senha';
-    const { webLink, deepLink } = typeof links === 'string' ? { webLink: links, deepLink: null } : links;
-    const deepSection = deepLink
-      ? `<p>Se estiver no aplicativo móvel e o link acima não abrir: <br/><code>${deepLink}</code></p>`
-      : '';
     const html = `
       <p>Você solicitou a redefinição de senha.</p>
-      <p>Clique no link abaixo (válido por 1 hora):</p>
-      <p><a href="${webLink}">${webLink}</a></p>
-      ${deepSection}
+      <p>Use o código abaixo para redefinir sua senha (válido por 1 hora):</p>
+      <p style="font-size: 32px; font-weight: bold; text-align: center; letter-spacing: 8px; color: #333; padding: 20px; background-color: #f5f5f5; border-radius: 8px;">${code}</p>
       <p>Se você não solicitou, ignore este email.</p>
     `;
 

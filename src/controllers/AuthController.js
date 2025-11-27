@@ -35,9 +35,9 @@ export default class AuthController extends BaseController {
   }
 
   async resetPassword(req, res) {
-    const { token, password } = req.body;
-    this.validateRequiredFields(req.body, ['token', 'password']);
-    const result = await this.authService.resetPassword(token, password);
+    const { email, code, password } = req.body;
+    this.validateRequiredFields(req.body, ['email', 'code', 'password']);
+    const result = await this.authService.resetPassword(email, code, password);
     return res.status(200).json(result);
   }
 }

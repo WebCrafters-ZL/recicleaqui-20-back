@@ -60,22 +60,16 @@ export default class AuthService extends BaseService {
             return { message: 'Se o email existir, enviaremos instruções.' };
         }
 
-        const rawToken = crypto.randomBytes(32).toString('hex');
+        // Gera código de 6 dígitos numéricos
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
         const generatedAt = new Date();
 
-        await this.authRepo.updateResetToken(user.id, rawToken, generatedAt);
-        logger.info(`Token de reset gerado para usuário ${email}`);
+        await this.authRepo.updateResetToken(user.id, resetCode, generatedAt);
+        logger.info(`Código de reset gerado para usuário ${email}`);
 
-        // Links (web + deep) para múltiplos ambientes
-        const webBase = ConfigUtils.FRONTEND_URL_WEB;
-        const deepBase = ConfigUtils.FRONTEND_URL_DEEP; // opcional
-        const path = 'reset-password';
-        const webLink = `${webBase.replace(/\/$/, '')}/${path}?token=${rawToken}`;
-        const deepLink = deepBase ? `${deepBase}${path}?token=${rawToken}` : null;
-
-        // Envia email
+        // Envia email com o código
         try {
-            await this.emailService.sendPasswordResetEmail(user.email, { webLink, deepLink });
+            await this.emailService.sendPasswordResetEmail(user.email, resetCode);
             logger.info(`Email de recuperação enviado para ${email}`);
         } catch (err) {
             logger.error(`Falha ao enviar email de recuperação para ${email}: ${err.message}`);
@@ -88,31 +82,38 @@ export default class AuthService extends BaseService {
     /**
      * Finaliza fluxo de recuperação de senha definindo nova senha
      */
-    async resetPassword(token, newPassword) {
-        if (!token) {
-            throw this.createError('Token obrigatório', 400);
+    async resetPassword(email, code, newPassword) {
+        if (!email) {
+            throw this.createError('E-mail obrigatório', 400);
+        }
+        if (!code) {
+            throw this.createError('Código obrigatório', 400);
+        }
+        // Valida se é um código de 6 dígitos numéricos
+        if (!/^\d{6}$/.test(code)) {
+            throw this.createError('Código inválido', 400);
         }
         if (!newPassword || newPassword.length < 6) {
             throw this.createError('Senha deve ter ao menos 6 caracteres', 400);
         }
 
-        const user = await this.authRepo.findUserByResetToken(token);
+        const user = await this.authRepo.findUserByEmailAndResetToken(email, code);
         if (!user) {
-            logger.warn(`Reset de senha: token inválido`);
-            throw this.createError('Token inválido ou expirado', 400);
+            logger.warn(`Reset de senha: e-mail ou código inválido`);
+            throw this.createError('E-mail ou código inválido/expirado', 400);
         }
 
         // Verifica expiração (1 hora)
         const generatedAt = user.resetTokenGeneratedAt;
         if (!generatedAt) {
-            throw this.createError('Token inválido ou expirado', 400);
+            throw this.createError('Código inválido ou expirado', 400);
         }
         const now = Date.now();
         const ageMs = now - new Date(generatedAt).getTime();
         const oneHourMs = 60 * 60 * 1000;
         if (ageMs > oneHourMs) {
             logger.warn(`Reset de senha expirado para usuário ${user.email}`);
-            throw this.createError('Token inválido ou expirado', 400);
+            throw this.createError('Código inválido ou expirado', 400);
         }
 
         const hashed = await hashPassword(newPassword);

@@ -66,9 +66,8 @@ class DatabaseManager {
   }
 
   /**
-   * Instância singleton global
+   * Instância singleton global (definida após a classe para compatibilidade do parser)
    */
-  static instance = null;
 
   /**
    * Obtém instância singleton
@@ -80,6 +79,9 @@ class DatabaseManager {
     return DatabaseManager.instance;
   }
 }
+
+// Define a propriedade estática fora da classe para compatibilidade de parser
+DatabaseManager.instance = null;
 
 // Instância singleton para compatibilidade
 const databaseManager = DatabaseManager.getInstance();

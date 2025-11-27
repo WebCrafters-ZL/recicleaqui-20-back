@@ -225,4 +225,22 @@ export default class ClientService extends BaseService {
     await this.clientRepo.updateUserPassword(userId, hashed);
     return { userId };
   }
+
+  /**
+   * Envia um código de redefinição de senha para o e-mail do cliente.
+   */
+  async sendPasswordResetCode(email) {
+    if (!isValidEmail(email)) {
+      throw this.createError('Email inválido');
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000); // Gera um código de 6 dígitos
+    // Aqui você deve implementar a lógica para enviar o código por e-mail
+    // await this.emailService.sendEmail(email, code);
+
+    // Armazenar o código em algum lugar para validação futura
+    await this.clientRepo.storePasswordResetCode(email, code);
+
+    return { message: 'Código de redefinição de senha enviado com sucesso.' };
+  }
 }

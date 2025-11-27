@@ -18,6 +18,7 @@ export default class ClientController extends BaseController {
     this.listAllClients = this.listAllClients.bind(this);
     this.getMe = this.getMe.bind(this);
     this.changePassword = this.changePassword.bind(this);
+    this.requestPasswordReset = this.requestPasswordReset.bind(this);
   }
 
   async createIndividualClient(req, res) {
@@ -86,5 +87,18 @@ export default class ClientController extends BaseController {
     const { currentPassword, newPassword } = req.body || {};
     const result = await this.clientService.changePassword(userIdInt, currentPassword, newPassword);
     return res.status(200).json({ message: 'Senha alterada com sucesso', ...result });
+  }
+
+  /**
+   * Solicita o envio de um código de redefinição de senha.
+   */
+  async requestPasswordReset(req, res) {
+    const { email } = req.body;
+    try {
+      const response = await this.clientService.sendPasswordResetCode(email);
+      return res.status(200).json(response);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
   }
 }

@@ -7,6 +7,10 @@ import { enrichAddressWithCoordinates } from '../utils/GeocodingUtils.js';
 export default class ClientRepository {
   constructor(prisma) {
     this.prisma = prisma;
+    this.uniqueMode = (process.env.PRISMA_UNIQUE_MODE || 'findFirst').toLowerCase();
+    if (!['findunique', 'findfirst'].includes(this.uniqueMode)) {
+      this.uniqueMode = 'findfirst';
+    }
   }
 
   /**
@@ -99,7 +103,8 @@ export default class ClientRepository {
    * Busca cliente por ID com includes
    */
   async findById(id) {
-    return this.prisma.client.findUnique({ 
+    const method = this.uniqueMode === 'findunique' ? 'findUnique' : 'findFirst';
+    return this.prisma.client[method]({ 
       where: { id }, 
       include: { 
         user: true, 
@@ -114,7 +119,8 @@ export default class ClientRepository {
    * Busca cliente por userId
    */
   async findByUserId(userId) {
-    return this.prisma.client.findUnique({
+    const method = this.uniqueMode === 'findunique' ? 'findUnique' : 'findFirst';
+    return this.prisma.client[method]({
       where: { userId },
       include: { 
         user: true, 
@@ -228,7 +234,8 @@ export default class ClientRepository {
         }
       }
 
-      return tx.client.findUnique({ 
+      const method = this.uniqueMode === 'findunique' ? 'findUnique' : 'findFirst';
+      return tx.client[method]({ 
         where: { id }, 
         include: { 
           user: true, 
@@ -290,7 +297,8 @@ export default class ClientRepository {
         }
       }
 
-      return tx.client.findUnique({ 
+      const method = this.uniqueMode === 'findunique' ? 'findUnique' : 'findFirst';
+      return tx.client[method]({ 
         where: { id }, 
         include: { 
           user: true, 

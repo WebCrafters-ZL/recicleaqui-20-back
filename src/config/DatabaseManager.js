@@ -17,13 +17,13 @@ class DatabaseManager {
    */
   getClient() {
     if (!this.client) {
-      // Cria pool de conexões do PostgreSQL
+      // Recria o adapter-pg corretamente (obrigatório no Prisma 7)
       this.pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
       const adapter = new PrismaPg(this.pool);
-      
+
       this.client = new PrismaClient({
         adapter,
-        log: this.options.log || ['error', 'warn'],
+        log: this.options.log || (process.env.NODE_ENV === 'production' ? ['error', 'warn'] : ['query', 'error', 'warn']),
         ...this.options
       });
     }

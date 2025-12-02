@@ -21,5 +21,6 @@ const asyncHandler = (fn) => (req, res, next) =>
 router.post('/login', apiLimiter, asyncHandler(authController.login));
 router.post('/forgot-password', apiLimiter, asyncHandler(authController.forgotPassword));
 router.post('/reset-password', apiLimiter, asyncHandler(authController.resetPassword));
+router.post('/verify-reset-code', apiLimiter, asyncHandler(authController.verifyResetCode));
 
 export default router;

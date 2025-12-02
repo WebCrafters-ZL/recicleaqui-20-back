@@ -13,6 +13,7 @@ export default class AuthController extends BaseController {
     this.login = this.login.bind(this);
     this.forgotPassword = this.forgotPassword.bind(this);
     this.resetPassword = this.resetPassword.bind(this);
+    this.verifyResetCode = this.verifyResetCode.bind(this);
   }
 
   async login(req, res) {
@@ -38,6 +39,13 @@ export default class AuthController extends BaseController {
     const { email, code, password } = req.body;
     this.validateRequiredFields(req.body, ['email', 'code', 'password']);
     const result = await this.authService.resetPassword(email, code, password);
+    return res.status(200).json(result);
+  }
+
+  async verifyResetCode(req, res) {
+    const { email, code } = req.body;
+    this.validateRequiredFields(req.body, ['email', 'code']);
+    const result = await this.authService.verifyResetCode(email, code);
     return res.status(200).json(result);
   }
 }

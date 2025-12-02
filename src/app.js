@@ -33,9 +33,8 @@ class Application {
     if (envTrustProxy !== undefined && envTrustProxy !== '') {
       this.app.set('trust proxy', envTrustProxy === 'true' ? true : envTrustProxy);
     } else {
-      // Em desenvolvimento dentro de contêiner geralmente há cabeçalhos X-Forwarded-* adicionados pelo ambiente.
-      // Definir true permite que Express calcule corretamente req.ip usando o header.
-      this.app.set('trust proxy', true);
+      // Padrão seguro: um hop (ex: reverse proxy local / dev container)
+      this.app.set('trust proxy', 1);
     }
     this.app.use(corsConfig);
     this.app.use(apiLimiter);

@@ -42,7 +42,6 @@ CREATE TABLE "CollectorHeadquarters" (
 
     CONSTRAINT "collector_headquarters_pk" PRIMARY KEY ("id")
 );
-     -- "addressType" removido
 
 CREATE TABLE "CollectionPoint" (
     "id" SERIAL NOT NULL,
@@ -66,7 +65,6 @@ CREATE TABLE "CollectionPoint" (
 
     CONSTRAINT "collection_points_pk" PRIMARY KEY ("id")
 );
-     -- "addressType" removido
 
 -- CreateIndex
 CREATE UNIQUE INDEX "collectors_unique" ON "Collector"("cnpj");

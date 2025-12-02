@@ -351,4 +351,14 @@ export default class ClientRepository {
       data: { password: hashedPassword, editedAt: new Date() }
     });
   }
+
+  /**
+   * Atualiza somente a URL do avatar do cliente
+   */
+  async updateAvatarUrl(clientId, avatarUrl) {
+    return this.prisma.client.update({
+      where: { id: clientId },
+      data: { avatarUrl, editedAt: new Date() }
+    });
+  }
 }

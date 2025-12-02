@@ -243,4 +243,69 @@ export default class ClientService extends BaseService {
 
     return { message: 'Código de redefinição de senha enviado com sucesso.' };
   }
+
+  /**
+   * Atualiza avatar do cliente, removendo arquivo anterior se existir.
+   */
+  async updateAvatar(clientId, newFilename, baseUrl) {
+    const client = await this.clientRepo.findById(clientId);
+    if (!client) {
+      throw this.createError('Cliente não encontrado', 404);
+    }
+
+    // Monta URL relativa e completa
+    const relative = `/uploads/avatars/${newFilename}`;
+    const full = `${baseUrl}${relative}`;
+
+    // Remove arquivo anterior, se houver
+    const prev = client.avatarUrl;
+    if (prev && typeof prev === 'string') {
+      const urlPath = prev.includes('/uploads/avatars/')
+        ? prev.substring(prev.indexOf('/uploads/avatars/'))
+        : null;
+      if (urlPath) {
+        try {
+          const path = (await import('path')).default;
+          const fs = (await import('fs')).default;
+          const abs = path.resolve(process.cwd(), urlPath.replace('/uploads', 'uploads'));
+          if (fs.existsSync(abs)) {
+            fs.unlinkSync(abs);
+          }
+        } catch (_) {}
+      }
+    }
+
+    await this.clientRepo.updateAvatarUrl(clientId, relative);
+    return { avatarUrl: full };
+  }
+
+  /**
+   * Processa buffer de imagem com validação de conteúdo e redimensiona/converte.
+   */
+  async processAndSaveAvatar(userId, buffer, originalName) {
+    const { default: path } = await import('path');
+    const { default: fs } = await import('fs');
+    const { fileTypeFromBuffer } = await import('file-type');
+    const sharp = (await import('sharp')).default;
+    const { AVATAR_DIR, ensureDir } = await import('../middlewares/UploadMiddleware.js');
+
+    // Valida tipo real do arquivo
+    const detected = await fileTypeFromBuffer(buffer);
+    if (!detected || !['image/png', 'image/jpeg', 'image/webp'].includes(detected.mime)) {
+      throw this.createError('Arquivo de imagem inválido', 400);
+    }
+
+    // Processa: redimensiona para no máx 1024x1024 e converte para WEBP
+    const processed = await sharp(buffer)
+      .rotate() // respeita EXIF
+      .resize({ width: 1024, height: 1024, fit: 'inside' })
+      .webp({ quality: 85 })
+      .toBuffer();
+
+    ensureDir(AVATAR_DIR);
+    const uniqueName = `${Date.now()}-${userId}.webp`;
+    const abs = path.resolve(AVATAR_DIR, uniqueName);
+    await fs.promises.writeFile(abs, processed);
+    return uniqueName;
+  }
 }

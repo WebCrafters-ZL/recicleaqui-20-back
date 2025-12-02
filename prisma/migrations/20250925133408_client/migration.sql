@@ -54,7 +54,6 @@ CREATE TABLE "public"."Address" (
 
     CONSTRAINT "addresses_pk" PRIMARY KEY ("id")
 );
-    -- "addressType" removido
 
 -- CreateIndex
 CREATE UNIQUE INDEX "clients_users_id_key" ON "public"."Client"("userId");

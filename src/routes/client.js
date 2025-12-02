@@ -7,6 +7,8 @@ import prisma from '../config/DatabaseManager.js';
 import ClientRepository from '../repositories/ClientRepository.js';
 import ClientService from '../services/ClientService.js';
 import ClientController from '../controllers/ClientController.js';
+import * as UploadMiddleware from '../middlewares/UploadMiddleware.js';
+import { RateLimiterMiddleware } from '../middlewares/RateLimiterMiddleware.js';
 
 // Instanciar dependências
 const clientRepository = new ClientRepository(prisma);
@@ -76,5 +78,13 @@ router.get('/', authRequired, hasRole('ADMIN'), asyncHandler(async (req, res) =>
 
 // Rota para solicitar o envio do código de redefinição de senha
 router.post('/request-password-reset', clientController.requestPasswordReset);
+
+// Upload de avatar
+// Rate limit específico para upload (3 uploads a cada 10 min)
+const uploadLimiter = RateLimiterMiddleware.creation({ windowMs: 10 * 60 * 1000, max: 3 });
+
+router.post('/:id/avatar', authRequired, hasRole('CLIENT'), uploadLimiter, UploadMiddleware.uploadAvatarSingle, asyncHandler(async (req, res) => {
+  return clientController.uploadAvatar(req, res);
+}));
 
 export default router;

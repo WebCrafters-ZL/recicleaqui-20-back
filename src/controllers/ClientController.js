@@ -19,6 +19,7 @@ export default class ClientController extends BaseController {
     this.getMe = this.getMe.bind(this);
     this.changePassword = this.changePassword.bind(this);
     this.requestPasswordReset = this.requestPasswordReset.bind(this);
+    this.uploadAvatar = this.uploadAvatar.bind(this);
   }
 
   async createIndividualClient(req, res) {
@@ -131,5 +132,29 @@ export default class ClientController extends BaseController {
     } catch (error) {
       return res.status(400).json({ error: error.message });
     }
+  }
+
+  /**
+   * Upload de avatar para o cliente autenticado (dono do recurso)
+   */
+  async uploadAvatar(req, res) {
+    const id = this.validateId(req.params.id);
+    if (!req.user?.id) {
+      return res.status(401).json({ message: 'Usuário não autenticado' });
+    }
+    const me = await this.clientService.getClientByUserId(parseInt(req.user.id, 10));
+    if (me.id !== id) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
+
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ message: 'Nenhum arquivo enviado' });
+    }
+
+    const baseUrl = (process.env.BASE_URL) || `${req.protocol}://${req.get('host')}`;
+    // Processa e salva avatar como WEBP
+    const filename = await this.clientService.processAndSaveAvatar(id, req.file.buffer, req.file.originalname);
+    const result = await this.clientService.updateAvatar(id, filename, baseUrl);
+    return res.json({ message: 'Avatar atualizado com sucesso', ...result });
   }
 }

@@ -1,7 +1,6 @@
 /*
   Warnings:
 
-  - You are about to alter the column `addressType` on the `Address` table. The data in that column could be lost. The data in that column will be cast from `VarChar` to `VarChar(50)`.
   - You are about to alter the column `addressName` on the `Address` table. The data in that column could be lost. The data in that column will be cast from `VarChar` to `VarChar(255)`.
   - You are about to alter the column `number` on the `Address` table. The data in that column could be lost. The data in that column will be cast from `VarChar` to `VarChar(10)`.
   - You are about to alter the column `additionalInfo` on the `Address` table. The data in that column could be lost. The data in that column will be cast from `VarChar` to `VarChar(255)`.
@@ -22,11 +21,10 @@
 
 */
 -- AlterTable
-ALTER TABLE "Address" ALTER COLUMN "addressType" SET DATA TYPE VARCHAR(50),
+ALTER TABLE "Address"
 ALTER COLUMN "addressName" SET DATA TYPE VARCHAR(255),
 ALTER COLUMN "number" SET DATA TYPE VARCHAR(10),
 ALTER COLUMN "additionalInfo" SET DATA TYPE VARCHAR(255),
--- Removido ajuste addressType
 ALTER COLUMN "city" SET DATA TYPE VARCHAR(100),
 ALTER COLUMN "state" SET DATA TYPE VARCHAR(2);
 

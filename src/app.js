@@ -43,7 +43,15 @@ class Application {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(cookieParser());
-    this.app.use(express.static(path.join(process.cwd(), 'public')));
+    this.app.use(express.static(path.join(process.cwd(), 'public'))); // Serve public files
+    // Servir arquivos estáticos de uploads com cache control
+    this.app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads'), {
+      etag: true,
+      maxAge: '7d',
+      setHeaders: (res) => {
+        res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+      }
+    }));
   }
 
   /**

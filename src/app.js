@@ -27,6 +27,15 @@ class Application {
    * Configura middlewares globais
    */
   setupMiddlewares() {
+    // Configura trust proxy antes de middlewares que dependem de IP (ex: rate limit)
+    // Em produção pode ser ajustado via variável TRUST_PROXY (ex: 'loopback', '127.0.0.1', quantidade de hops, etc.)
+    const envTrustProxy = process.env.TRUST_PROXY;
+    if (envTrustProxy !== undefined && envTrustProxy !== '') {
+      this.app.set('trust proxy', envTrustProxy === 'true' ? true : envTrustProxy);
+    } else {
+      // Padrão seguro: um hop (ex: reverse proxy local / dev container)
+      this.app.set('trust proxy', 1);
+    }
     this.app.use(corsConfig);
     this.app.use(apiLimiter);
     this.app.use(helmet());

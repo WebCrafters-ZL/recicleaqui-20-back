@@ -271,7 +271,7 @@ export default class ClientService extends BaseService {
           if (fs.existsSync(abs)) {
             fs.unlinkSync(abs);
           }
-        } catch (_) {}
+        } catch {}
       }
     }
 
@@ -282,7 +282,7 @@ export default class ClientService extends BaseService {
   /**
    * Processa buffer de imagem com validação de conteúdo e redimensiona/converte.
    */
-  async processAndSaveAvatar(userId, buffer, originalName) {
+  async processAndSaveAvatar(userId, buffer, _originalName) {
     const { default: path } = await import('path');
     const { default: fs } = await import('fs');
     const { fileTypeFromBuffer } = await import('file-type');

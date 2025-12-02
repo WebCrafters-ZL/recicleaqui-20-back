@@ -2,13 +2,24 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
-const AVATAR_DIR = path.resolve(process.cwd(), 'uploads', 'avatars');
+const UPLOADS_DIR = path.resolve(process.cwd(), 'uploads');
+const AVATAR_DIR = path.resolve(UPLOADS_DIR, 'avatars');
 
+/* eslint-disable security/detect-non-literal-fs-filename */
 function ensureDir(dirPath) {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
+  // Usa apenas caminhos conhecidos/literais
+  if (dirPath !== UPLOADS_DIR && dirPath !== AVATAR_DIR) {
+    throw new Error('Diretório de upload inválido');
+  }
+  try {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+  } catch {
+    throw new Error('Falha ao preparar diretório de upload');
   }
 }
+/* eslint-enable security/detect-non-literal-fs-filename */
 
 // Usamos memoryStorage para processar imagem com sharp antes de salvar
 const storage = multer.memoryStorage();

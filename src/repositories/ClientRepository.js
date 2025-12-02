@@ -104,6 +104,7 @@ export default class ClientRepository {
    */
   async findById(id) {
     const method = this.uniqueMode === 'findunique' ? 'findUnique' : 'findFirst';
+    // eslint-disable-next-line security/detect-object-injection -- method é controlado internamente ('findUnique'|'findFirst')
     return this.prisma.client[method]({ 
       where: { id }, 
       include: { 
@@ -120,6 +121,7 @@ export default class ClientRepository {
    */
   async findByUserId(userId) {
     const method = this.uniqueMode === 'findunique' ? 'findUnique' : 'findFirst';
+    // eslint-disable-next-line security/detect-object-injection -- method é controlado internamente ('findUnique'|'findFirst')
     return this.prisma.client[method]({
       where: { userId },
       include: { 
@@ -235,6 +237,7 @@ export default class ClientRepository {
       }
 
       const method = this.uniqueMode === 'findunique' ? 'findUnique' : 'findFirst';
+      // eslint-disable-next-line security/detect-object-injection -- method é controlado internamente ('findUnique'|'findFirst')
       return tx.client[method]({ 
         where: { id }, 
         include: { 
@@ -298,6 +301,7 @@ export default class ClientRepository {
       }
 
       const method = this.uniqueMode === 'findunique' ? 'findUnique' : 'findFirst';
+      // eslint-disable-next-line security/detect-object-injection -- method é controlado internamente ('findUnique'|'findFirst')
       return tx.client[method]({ 
         where: { id }, 
         include: { 

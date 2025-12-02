@@ -8,7 +8,9 @@ class HashUtils {
   /**
    * Número de rounds para o salt do bcrypt
    */
-  static SALT_ROUNDS = SECURITY.SALT_ROUNDS;
+  static get SALT_ROUNDS() {
+    return SECURITY.SALT_ROUNDS;
+  }
 
   /**
    * Gera hash de uma senha

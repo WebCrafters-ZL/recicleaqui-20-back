@@ -43,7 +43,7 @@ RecicleAqui 2.0 é uma plataforma que facilita o processo de reciclagem, conecta
 ### 1. Instalação
 
 ```bash
-# Clone o repositório
+# Clone o repositório (fork)
 git clone https://github.com/WebCrafters-ZL/recicleaqui-20-back.git
 cd recicleaqui-20-back
 
@@ -64,11 +64,18 @@ PORT=3000
 USE_ETHEREAL=true
 ```
 
+Notas de ambiente:
+- `npm run dev` usa `.env.development.local`
+- `npm start` usa `.env`
+
 ### 3. Banco de Dados
 
 ```bash
-# Execute as migrations
+# Execute as migrations (dev)
 npm run migrate:dev
+
+# Ver status das migrations
+npm run migrate:status
 ```
 
 ### 4. Executar
@@ -107,6 +114,7 @@ A API está organizada em 4 módulos principais:
 - `POST /login` - Login com JWT
 - `POST /forgot-password` - Solicitar código de recuperação de senha (6 dígitos)
 - `POST /reset-password` - Redefinir senha com email e código
+ - `GET /profile` - Perfil do usuário autenticado (exemplo de rota protegida)
 
 ### 2. Clientes (`/api/v1/clients`)
 - `POST /individual` - Cadastro de pessoa física
@@ -114,6 +122,7 @@ A API está organizada em 4 módulos principais:
 - `GET /:id` - Obter cliente por ID
 - `PUT /individual/:id` - Atualizar PF
 - `PUT /company/:id` - Atualizar PJ
+- `PUT /password` - Alterar senha do cliente autenticado
 - `DELETE /:id` - Remover cliente
 
 ### 3. Coletores (`/api/v1/collectors`)
@@ -142,6 +151,7 @@ npm run lint         # Verifica código com ESLint
 # Banco de Dados
 npm run migrate:dev  # Aplica migrations (dev)
 npm run migrate:prod # Aplica migrations (prod)
+ npm run migrate:status # Mostra status das migrations
 
 # Produção
 npm start            # Inicia servidor em modo produção
@@ -154,6 +164,11 @@ npm start            # Inicia servidor em modo produção
 - **[Segurança](docs/SECURITY.md)** - Medidas de segurança implementadas
 - **[Banco de Dados](docs/DATABASE.md)** - Schema Prisma e migrations
 - **[Geocodificação](docs/GEOCODING.md)** - Sistema de geocodificação de endereços
+ - **[Utilitários](docs/UTILS.md)** - Helpers e validadores
+ - **[Ambiente e Variáveis](docs/ENVIRONMENT.md)** - Configuração de `.env`, CORS, JWT e email
+ - **[Uploads](docs/UPLOADS.md)** - Regras, middleware e arquivos estáticos
+
+Para detalhes de configuração e uploads, consulte os documentos específicos acima.
 
 ---
 

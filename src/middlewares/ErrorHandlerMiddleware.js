@@ -11,7 +11,7 @@ class ErrorHandlerMiddleware {
   /**
    * Middleware principal de tratamento de erros
    */
-  handle = (err, req, res, next) => {
+  handle(err, req, res, next) {
     // If headers were already sent, delegate to the default Express error handler
     if (res.headersSent) {
       return next(err);
@@ -33,7 +33,7 @@ class ErrorHandlerMiddleware {
       message: err.message,
       error: isDevelopment ? err : {}
     });
-  };
+  }
 
   /**
    * Método estático para uso direto

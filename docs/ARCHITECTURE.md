@@ -341,10 +341,11 @@ const express = require('express');
 const app = express();
 
 // Middlewares globais
+app.set('trust proxy', 1); // pode ser configurado via TRUST_PROXY
 app.use(helmet());
-app.use(cors());
+app.use(corsConfig); // origem vinda de ConfigUtils.FRONTEND_URL
+app.use(apiLimiter); // rate limit padrão da API
 app.use(express.json());
-app.use(RateLimiterMiddleware.limit());
 
 // Rotas
 app.use('/api/v1/auth', authRoutes);

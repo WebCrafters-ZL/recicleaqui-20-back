@@ -30,20 +30,20 @@ Controla quais origens podem acessar a API:
 // src/middlewares/CorsMiddleware.js
 const cors = require('cors');
 
-const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-};
+// src/middlewares/CorsMiddleware.js
+import ConfigUtils from '../utils/ConfigUtils.js';
 
-app.use(cors(corsOptions));
+// Origem padrão vem de FRONTEND_URL
+app.use(cors({
+  origin: ConfigUtils.FRONTEND_URL,
+  credentials: true
+}));
 ```
 
 **Configuração recomendada:**
 ```env
-# .env
-ALLOWED_ORIGINS="https://seuapp.com,https://admin.seuapp.com"
+# .env.development.local
+FRONTEND_URL="http://localhost:5173"
 ```
 
 ### 3. Rate Limiting
@@ -54,17 +54,21 @@ Proteção contra abuso de requisições e ataques de força bruta:
 // src/middlewares/RateLimiterMiddleware.js
 const rateLimit = require('express-rate-limit');
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // Limite de 100 requisições por IP
-  message: 'Muitas requisições deste IP, tente novamente mais tarde.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// src/middlewares/RateLimiterMiddleware.js
+// Limite padrão da API
+app.use(RateLimiterMiddleware.api());
+
+// Limite específico para autenticação
+router.post('/auth/login', RateLimiterMiddleware.auth(), AuthController.login);
+
+// Limite de criação de recursos (ex.: cadastro)
+router.post('/clients/individual', RateLimiterMiddleware.creation(), ClientController.createIndividual);
 ```
 
 **Limites aplicados:**
-- 100 requisições por IP a cada 15 minutos
+- API: 100 requisições por IP a cada 15 minutos
+- Login: 5 tentativas por IP a cada 15 minutos
+- Criação: 10 requisições por IP a cada 1 hora
 - Headers retornados: `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset`
 
 ### 4. Error Handler
@@ -117,7 +121,7 @@ const token = jwt.sign(
     role: user.role 
   },
   process.env.JWT_SECRET,
-  { expiresIn: '7d' }
+  { expiresIn: ConfigUtils.JWT_EXPIRES_IN }
 );
 ```
 
@@ -440,7 +444,7 @@ Sistema de logs com Winston para auditoria e monitoramento:
 
 ```javascript
 // src/utils/Logger.js
-const winston = require('winston');
+import winston from 'winston';
 
 const logger = winston.createLogger({
   level: 'info',

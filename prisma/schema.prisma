@@ -112,7 +112,7 @@ model Company {
 
 model Address {
   id             Int       @id(map: "addresses_pk") @default(autoincrement())
-  addressType    String    @db.VarChar(50)
+  // addressType removido
   addressName    String    @db.VarChar(255)
   number         String    @db.VarChar(10)
   additionalInfo String?   @db.VarChar(255)
@@ -152,7 +152,7 @@ model Collector {
 
 model CollectorHeadquarters {
   id             Int       @id(map: "collector_headquarters_pk") @default(autoincrement())
-  addressType    String    @db.VarChar(50)
+  // addressType removido
   addressName    String    @db.VarChar(255)
   number         String    @db.VarChar(10)
   additionalInfo String?   @db.VarChar(255)
@@ -172,7 +172,7 @@ model CollectionPoint {
   id                Int       @id(map: "collection_points_pk") @default(autoincrement())
   name              String    @db.VarChar(255)
   description       String?   @db.Text
-  addressType       String    @db.VarChar(50)
+  // addressType removido
   addressName       String    @db.VarChar(255)
   number            String    @db.VarChar(10)
   additionalInfo    String?   @db.VarChar(255)

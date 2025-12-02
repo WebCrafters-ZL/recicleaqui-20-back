@@ -39,10 +39,8 @@ CREATE TABLE "public"."Company" (
     CONSTRAINT "companies_pk" PRIMARY KEY ("id")
 );
 
--- CreateTable
 CREATE TABLE "public"."Address" (
     "id" SERIAL NOT NULL,
-    "addressType" VARCHAR NOT NULL,
     "addressName" VARCHAR NOT NULL,
     "number" VARCHAR NOT NULL,
     "additionalInfo" VARCHAR,
@@ -56,6 +54,7 @@ CREATE TABLE "public"."Address" (
 
     CONSTRAINT "addresses_pk" PRIMARY KEY ("id")
 );
+    -- "addressType" removido
 
 -- CreateIndex
 CREATE UNIQUE INDEX "clients_users_id_key" ON "public"."Client"("userId");

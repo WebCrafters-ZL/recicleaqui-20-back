@@ -250,12 +250,12 @@ export default class CollectorService extends BaseService {
    * Cria ponto de coleta
    */
   async createCollectionPoint(collectorId, data) {
-        const { name, description, addressType, addressName, number, additionalInfo, 
+        const { name, description, addressName, number, additionalInfo, 
           neighborhood, postalCode, city, state, latitude, longitude, 
           operatingHours, acceptedLines, acceptedMaterials } = data;
 
     // Validar campos obrigatórios
-    const required = ['name', 'addressType', 'addressName', 'number', 'neighborhood', 'postalCode', 'city', 'state'];
+    const required = ['name', 'addressName', 'number', 'neighborhood', 'postalCode', 'city', 'state'];
     this.validateRequiredFields(data, required);
 
     // Verifica se coletor existe
@@ -267,7 +267,6 @@ export default class CollectorService extends BaseService {
     return this.collectorRepo.createCollectionPoint({
       name,
       description,
-      addressType,
       addressName,
       number,
       additionalInfo,

@@ -8,7 +8,7 @@ class AuthMiddleware {
   /**
    * Middleware que valida o token JWT e adiciona o usuário decodificado em req.user
    */
-  required = (req, res, next) => {
+  required(req, res, next) {
     const token = JwtUtils.extractFromHeader(req.headers.authorization);
     
     if (!token) {
@@ -19,15 +19,15 @@ class AuthMiddleware {
       const decoded = JwtUtils.verify(token);
       req.user = decoded;
       next();
-    } catch (err) {
+    } catch {
       return res.status(401).json({ message: 'Token inválido ou expirado' });
     }
-  };
+  }
 
   /**
    * Middleware que verifica se o usuário tem uma role específica
    */
-  hasRole = (...allowedRoles) => {
+  hasRole(...allowedRoles) {
     return (req, res, next) => {
       if (!req.user) {
         return res.status(401).json({ message: 'Usuário não autenticado' });
@@ -37,7 +37,7 @@ class AuthMiddleware {
       }
       next();
     };
-  };
+  }
 }
 
 // Instância singleton

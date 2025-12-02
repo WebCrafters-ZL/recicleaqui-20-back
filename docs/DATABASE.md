@@ -413,6 +413,9 @@ npm run migrate:dev
 # Produção - Apenas aplica migrations
 npm run migrate:prod
 
+# Ver status das migrations
+npm run migrate:status
+
 # Criar nova migration
 npx prisma migrate dev --name nome_da_migration
 

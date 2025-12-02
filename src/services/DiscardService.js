@@ -175,6 +175,7 @@ export default class DiscardService extends BaseService {
       throw this.createError('Índice de slot inválido');
     }
 
+    // eslint-disable-next-line security/detect-object-injection -- chosen index é validado explicitamente
     const chosen = slots[chosenSlotIndex];
     await this.discardRepo.updateOffer(offerId, { status: 'ACCEPTED', acceptedSlot: chosen });
     await this.discardRepo.updateDiscard(offer.discardId, { status: 'SCHEDULED', scheduledSlot: chosen });

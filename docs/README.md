@@ -31,6 +31,7 @@ Bem-vindo à documentação completa do projeto RecicleAqui 2.0 Backend.
   - Boas práticas e checklist
 
 - **[Utilitários](UTILS.md)** - Módulos utilitários e helpers
+- **[Ambiente e Variáveis](ENVIRONMENT.md)** - Configuração de `.env`, CORS, JWT e email
   - Validadores (Email, CPF, CNPJ, Telefone, Material)
   - Formatadores de dados
   - Gerenciamento de configurações
@@ -39,6 +40,7 @@ Bem-vindo à documentação completa do projeto RecicleAqui 2.0 Backend.
 ### Funcionalidades Específicas
 
 - **[Geocodificação](GEOCODING.md)** - Sistema de geocodificação de endereços
+- **[Uploads](UPLOADS.md)** - Regras de upload, middleware e arquivos estáticos
   - Integração com API Nominatim (OpenStreetMap)
   - Obtenção automática de coordenadas
   - Busca por proximidade

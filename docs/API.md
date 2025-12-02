@@ -1,5 +1,35 @@
 # API - Endpoints
 
+## Índice
+- [Tipos de Usuário](#tipos-de-usuário)
+- [1. Autenticação](#1-autenticação-apiv1auth)
+  - [POST /login](#post-apiv1authlogin)
+  - [GET /profile](#get-apiv1authprofile)
+  - [POST /forgot-password](#post-apiv1authforgot-password)
+  - [POST /reset-password](#post-apiv1authreset-password)
+- [2. Clientes](#2-clientes-apiv1clients)
+  - [POST /individual](#post-apiv1clientsindividual)
+  - [POST /company](#post-apiv1clientscompany)
+  - [GET /:id](#get-apiv1clientsid)
+  - [PUT /individual/:id](#put-apiv1clientsindividualid)
+  - [PUT /company/:id](#put-apiv1clientscompanyid)
+  - [PUT /password](#put-apiv1clientspassword)
+  - [DELETE /:id](#delete-apiv1clientsid)
+  - [GET /](#get-apiv1clients)
+  - [POST /:id/avatar](#post-apiv1clientsidavatar)
+- [3. Coletores](#3-coletores-apiv1collectors)
+  - [POST /](#post-apiv1collectors)
+  - [GET /:id](#get-apiv1collectorsid)
+- [4. Descartes](#4-descartes-apiv1discards)
+  - [POST /](#post-apiv1discards)
+  - [POST /eligible-points](#post-apiv1discardseligible-points)
+  - [GET /pending-pickup/:collectorId](#get-apiv1discardspending-pickupcollectorid)
+  - [POST /:discardId/offers](#post-apiv1discardsdiscardidoffers)
+  - [POST /offers/:offerId/accept](#post-apiv1discardsoffersofferidaccept)
+  - [POST /offers/:offerId/reject](#post-apiv1discardsoffersofferidreject)
+  - [POST /:discardId/cancel](#post-apiv1discardsdiscardidcancel)
+  - [POST /:discardId/complete](#post-apiv1discardsdiscardidcomplete)
+
 A API está organizada em 4 módulos principais: Autenticação, Clientes, Coletores e Descartes.
 
 ## Tipos de Usuário
@@ -36,6 +66,18 @@ Autentica usuário e retorna token JWT.
     "role": "CLIENT"
   },
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+### GET `/api/v1/auth/profile`
+Retorna informações do usuário autenticado (exemplo de rota protegida). Requer header `Authorization: Bearer <token>`.
+
+**Resposta (200):**
+```json
+{
+  "id": 7,
+  "email": "usuario@example.com",
+  "role": "CLIENT"
 }
 ```
 
@@ -198,10 +240,18 @@ Altera a senha do usuário autenticado (cliente). Requer JWT.
 ```
 
 **Respostas:**
-- 200: `{ "message": "Senha alterada com sucesso", "userId": <id> }`
+- 200: `{ "message": "Senha alterada com sucesso", "userId": 7 }`
 - 400: `Senha atual inválida` ou campos obrigatórios ausentes
 - 401: Usuário não autenticado
 - 404: Usuário não encontrado
+
+**Exemplo de resposta de erro (400):**
+```json
+{
+  "status": 400,
+  "message": "Senha atual inválida"
+}
+```
 
 ### DELETE `/api/v1/clients/:id`
 Remove um cliente do sistema.
@@ -219,6 +269,32 @@ Lista todos os clientes (uso administrativo).
 - `email`: não pode ser alterado via update de cliente
 - `cpf`/`cnpj`: não podem ser alterados após criação
 - `password`: alteração somente via endpoint dedicado `PUT /api/v1/clients/password`
+
+### POST `/api/v1/clients/:id/avatar`
+Upload de avatar do cliente autenticado (somente o dono). Requer JWT.
+
+Rate limit: até 3 uploads a cada 10 minutos.
+
+**Headers:**
+- `Authorization: Bearer <token>`
+- `Content-Type: multipart/form-data`
+
+**Form-Data:**
+- `avatar`: arquivo de imagem (`image/jpeg`, `image/png` ou `image/webp`), até 5MB
+
+**Resposta (200):**
+```json
+{
+  "message": "Avatar atualizado com sucesso",
+  "avatarUrl": "http://localhost:3000/uploads/avatars/1733112000000-7.webp"
+}
+```
+
+**Erros comuns:**
+- 400: `Nenhum arquivo enviado` ou `Arquivo de imagem inválido`
+- 401: `Usuário não autenticado`
+- 403: `Acesso negado` (não é o dono)
+- 404: `Cliente não encontrado`
 
 ---
 
@@ -428,10 +504,55 @@ Lista pontos de coleta elegíveis por proximidade e linhas aceitas.
 
 Retorna lista ordenada por proximidade.
 
+**Resposta (200):**
+```json
+[
+  {
+    "id": 22,
+    "name": "Ponto Centro",
+    "description": "Ponto de coleta no centro da cidade",
+    "city": "São Paulo",
+    "state": "SP",
+    "latitude": -23.5500,
+    "longitude": -46.6330,
+    "acceptedLines": ["VERDE", "AZUL"],
+    "collector": {
+      "tradeName": "Recicladora",
+      "phone": "1133334444"
+    },
+    "distanceKm": 1.25
+  }
+]
+```
+
 ### GET `/api/v1/discards/pending-pickup/:collectorId`
 Lista descartes pendentes de coleta domiciliar para um coletor específico.
 
 Retorna descartes `PENDING` cujo conjunto de linhas está contido em `acceptedLines` do coletor.
+
+**Resposta (200):**
+```json
+[
+  {
+    "id": 40,
+    "client": {
+      "id": 10,
+      "individual": { "firstName": "João", "lastName": "Silva" },
+      "company": null,
+      "address": {
+        "city": "São Paulo",
+        "state": "SP",
+        "latitude": -23.5505,
+        "longitude": -46.6333
+      }
+    },
+    "mode": "PICKUP",
+    "lines": ["VERDE", "AZUL"],
+    "status": "PENDING",
+    "createdAt": "2025-11-25T08:00:00Z"
+  }
+]
+```
 
 ### POST `/api/v1/discards/:discardId/offers`
 Cria uma oferta de coleta (coletor propõe horários ao cliente).
@@ -449,6 +570,20 @@ Cria uma oferta de coleta (coletor propõe horários ao cliente).
 
 Status do descarte muda para `OFFERED`.
 
+**Resposta (201):**
+```json
+{
+  "id": 3,
+  "discardId": 40,
+  "collectorId": 5,
+  "proposedSlots": [
+    { "date": "2025-11-28", "start": "08:00", "end": "09:00" },
+    { "date": "2025-11-28", "start": "16:00", "end": "17:00" }
+  ],
+  "status": "PENDING"
+}
+```
+
 ### POST `/api/v1/discards/offers/:offerId/accept`
 Aceita uma oferta (cliente escolhe um dos horários propostos).
 
@@ -460,6 +595,14 @@ Aceita uma oferta (cliente escolhe um dos horários propostos).
 ```
 
 Atualiza `Offer.status` para `ACCEPTED` e `Discard.status` para `SCHEDULED`.
+
+**Resposta (200):**
+```json
+{
+  "offerId": 3,
+  "acceptedSlot": { "date": "2025-11-28", "start": "16:00", "end": "17:00" }
+}
+```
 
 ### POST `/api/v1/discards/offers/:offerId/reject`
 Rejeita uma oferta.

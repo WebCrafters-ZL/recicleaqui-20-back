@@ -122,4 +122,39 @@ export default class AuthService extends BaseService {
 
         return { message: 'Senha atualizada com sucesso.' };
     }
+
+    /**
+     * Verifica se o código de reset é válido sem alterar estado do usuário
+     */
+    async verifyResetCode(email, code) {
+        if (!email) {
+            throw this.createError('E-mail obrigatório', 400);
+        }
+        if (!code) {
+            throw this.createError('Código obrigatório', 400);
+        }
+        if (!/^\d{6}$/.test(code)) {
+            throw this.createError('Código inválido', 400);
+        }
+
+        const user = await this.authRepo.findUserByEmailAndResetToken(email, code);
+        if (!user) {
+            logger.warn('Verificação de código: e-mail ou código inválido/expirado');
+            throw this.createError('E-mail ou código inválido/expirado', 400);
+        }
+
+        const generatedAt = user.resetTokenGeneratedAt;
+        if (!generatedAt) {
+            throw this.createError('E-mail ou código inválido/expirado', 400);
+        }
+        const now = Date.now();
+        const ageMs = now - new Date(generatedAt).getTime();
+        const oneHourMs = 60 * 60 * 1000;
+        if (ageMs > oneHourMs) {
+            logger.warn(`Verificação de código expirado para usuário ${user.email}`);
+            throw this.createError('E-mail ou código inválido/expirado', 400);
+        }
+
+        return { valid: true, message: 'Código válido' };
+    }
 }

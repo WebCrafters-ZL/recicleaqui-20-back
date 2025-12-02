@@ -26,6 +26,16 @@ export default class AuthRepository {
   }
 
   /**
+   * Busca informações do coletor associado ao usuário
+   */
+  async findCollectorByUserId(userId) {
+    return this.prisma.collector.findUnique({
+      where: { userId },
+      select: { id: true }
+    });
+  }
+
+  /**
    * Atualiza o token de reset de senha do usuário
    */
   async updateResetToken(userId, resetToken, generatedAt) {

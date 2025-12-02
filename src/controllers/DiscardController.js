@@ -16,8 +16,11 @@ export default class DiscardController extends BaseController {
   }
 
   async registerDiscard(req, res) {
-    // TODO: usar auth para obter clientId (req.user.id)
-    const clientId = req.body.clientId; // provisório
+    // Ownership: clientId deve vir do usuário autenticado
+    if (!req.user?.id) {
+      return res.status(401).json({ message: 'Usuário não autenticado' });
+    }
+    const clientId = await this.discardService.getClientIdByUserId(parseInt(req.user.id, 10));
     const result = await this.discardService.registerDiscard(clientId, req.body);
     return res.status(201).json(result);
   }
@@ -32,12 +35,18 @@ export default class DiscardController extends BaseController {
 
   async listPendingPickupDiscardsForCollector(req, res) {
     const collectorId = this.validateId(req.params.collectorId, 'collectorId');
+    // Ownership: coletor só pode listar os seus
+    const ownerUserId = await this.discardService.getCollectorOwnerUserId(collectorId);
+    if (ownerUserId !== parseInt(req.user.id, 10)) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
     const discards = await this.discardService.listPendingPickupDiscardsForCollector(collectorId);
     return res.json(discards);
   }
 
   async createOffer(req, res) {
-    const collectorId = req.body.collectorId; // provisório, vir do auth
+    // Ownership: coletorId deve vir do usuário autenticado
+    const collectorId = await this.discardService.getCollectorIdByUserId(parseInt(req.user.id, 10));
     const discardId = this.validateId(req.params.discardId, 'discardId');
     const { proposedSlots } = req.body;
     const offer = await this.discardService.createOffer(collectorId, discardId, proposedSlots);
@@ -47,25 +56,45 @@ export default class DiscardController extends BaseController {
   async acceptOffer(req, res) {
     const offerId = this.validateId(req.params.offerId, 'offerId');
     const { chosenSlotIndex } = req.body;
-    const result = await this.discardService.acceptOffer(offerId, chosenSlotIndex);
+    // Ownership: somente o cliente dono do descarte desta oferta pode aceitar
+    const clientUserId = parseInt(req.user?.id || '0', 10);
+    if (!clientUserId) {
+      return res.status(401).json({ message: 'Usuário não autenticado' });
+    }
+    const result = await this.discardService.acceptOfferOwnedByUser(offerId, chosenSlotIndex, clientUserId);
     return res.json(result);
   }
 
   async rejectOffer(req, res) {
     const offerId = this.validateId(req.params.offerId, 'offerId');
-    const result = await this.discardService.rejectOffer(offerId);
+    // Ownership: somente o cliente dono pode rejeitar
+    const clientUserId = parseInt(req.user?.id || '0', 10);
+    if (!clientUserId) {
+      return res.status(401).json({ message: 'Usuário não autenticado' });
+    }
+    const result = await this.discardService.rejectOfferOwnedByUser(offerId, clientUserId);
     return res.json(result);
   }
 
   async cancelDiscard(req, res) {
     const discardId = this.validateId(req.params.discardId, 'discardId');
-    const result = await this.discardService.cancelDiscard(discardId);
+    // Ownership: somente o cliente dono pode cancelar
+    const clientUserId = parseInt(req.user?.id || '0', 10);
+    if (!clientUserId) {
+      return res.status(401).json({ message: 'Usuário não autenticado' });
+    }
+    const result = await this.discardService.cancelDiscardOwnedByUser(discardId, clientUserId);
     return res.json(result);
   }
 
   async completeDiscard(req, res) {
     const discardId = this.validateId(req.params.discardId, 'discardId');
-    const result = await this.discardService.completeDiscard(discardId);
+    // Ownership: somente o coletor designado pode concluir
+    const collectorUserId = parseInt(req.user?.id || '0', 10);
+    if (!collectorUserId) {
+      return res.status(401).json({ message: 'Usuário não autenticado' });
+    }
+    const result = await this.discardService.completeDiscardOwnedByCollector(discardId, collectorUserId);
     return res.json(result);
   }
 }

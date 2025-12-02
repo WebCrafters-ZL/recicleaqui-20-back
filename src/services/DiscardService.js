@@ -12,6 +12,24 @@ export default class DiscardService extends BaseService {
     this.prisma = prisma;
   }
 
+  async getClientIdByUserId(userId) {
+    const client = await this.prisma.client.findUnique({ where: { userId } });
+    if (!client) throw this.createError('Cliente não encontrado', 404);
+    return client.id;
+  }
+
+  async getCollectorIdByUserId(userId) {
+    const collector = await this.prisma.collector.findUnique({ where: { userId } });
+    if (!collector) throw this.createError('Coletor não encontrado', 404);
+    return collector.id;
+  }
+
+  async getCollectorOwnerUserId(collectorId) {
+    const collector = await this.collectorRepo.findById(collectorId);
+    if (!collector) throw this.createError('Coletor não encontrado', 404);
+    return collector.userId;
+  }
+
   /**
    * Registra novo descarte
    * mode: COLLECTION_POINT | PICKUP
@@ -192,6 +210,57 @@ export default class DiscardService extends BaseService {
     }
     await this.discardRepo.updateDiscard(discardId, { status: 'COMPLETED' });
     return { discardId, status: 'COMPLETED' };
+  }
+
+  // Ownership-aware variants
+  async acceptOfferOwnedByUser(offerId, chosenSlotIndex, userId) {
+    const offer = await this.discardRepo.findOfferById(offerId);
+    if (!offer) throw this.createError('Oferta não encontrada', 404);
+    const discard = await this.discardRepo.findById(offer.discardId);
+    if (!discard) throw this.createError('Descarte não encontrado', 404);
+    const client = await this.prisma.client.findUnique({ where: { id: discard.clientId } });
+    if (!client || client.userId !== userId) {
+      throw this.createError('Acesso negado', 403);
+    }
+    return this.acceptOffer(offerId, chosenSlotIndex);
+  }
+
+  async rejectOfferOwnedByUser(offerId, userId) {
+    const offer = await this.discardRepo.findOfferById(offerId);
+    if (!offer) throw this.createError('Oferta não encontrada', 404);
+    const discard = await this.discardRepo.findById(offer.discardId);
+    if (!discard) throw this.createError('Descarte não encontrado', 404);
+    const client = await this.prisma.client.findUnique({ where: { id: discard.clientId } });
+    if (!client || client.userId !== userId) {
+      throw this.createError('Acesso negado', 403);
+    }
+    return this.rejectOffer(offerId);
+  }
+
+  async cancelDiscardOwnedByUser(discardId, userId) {
+    const discard = await this.discardRepo.findById(discardId);
+    if (!discard) throw this.createError('Descarte não encontrado', 404);
+    const client = await this.prisma.client.findUnique({ where: { id: discard.clientId } });
+    if (!client || client.userId !== userId) {
+      throw this.createError('Acesso negado', 403);
+    }
+    return this.cancelDiscard(discardId);
+  }
+
+  async completeDiscardOwnedByCollector(discardId, collectorUserId) {
+    const discard = await this.discardRepo.findById(discardId);
+    if (!discard) throw this.createError('Descarte não encontrado', 404);
+    // Verifica se há oferta aceita deste coletor
+    const offers = await this.prisma.offer.findMany({ where: { discardId, status: 'ACCEPTED' } });
+    if (offers.length === 0) {
+      throw this.createError('Nenhuma oferta aceita para este descarte', 400);
+    }
+    // Verifica ownership do coletor
+    const collector = await this.collectorRepo.findById(offers[0].collectorId);
+    if (!collector || collector.userId !== collectorUserId) {
+      throw this.createError('Acesso negado', 403);
+    }
+    return this.completeDiscard(discardId);
   }
 
   // Utilidade distance (reuso de haversine)

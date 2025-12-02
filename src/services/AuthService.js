@@ -44,9 +44,17 @@ export default class AuthService extends BaseService {
             }
         }
 
+        let collectorInfo = null;
+        if (user.role === 'COLLECTOR') {
+            const collector = await this.authRepo.findCollectorByUserId(user.id);
+            if (collector) {
+                collectorInfo = { collectorId: collector.id };
+            }
+        }
+
         logger.info(`Usuário autenticado com sucesso: ${email} (role: ${user.role})`);
 
-        return { user: safeUser, token, ...clientInfo };
+        return { user: safeUser, token, ...clientInfo, ...collectorInfo };
     }
 
     /**

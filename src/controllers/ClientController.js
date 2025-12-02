@@ -33,24 +33,55 @@ export default class ClientController extends BaseController {
 
   async getClientById(req, res) {
     const id = this.validateId(req.params.id || req.query.id);
+    // Ownership: CLIENT só pode acessar o próprio registro
+    if (req.user?.role === 'CLIENT') {
+      const me = await this.clientService.getClientByUserId(parseInt(req.user.id, 10));
+      if (me.id !== id) {
+        return res.status(403).json({ message: 'Acesso negado' });
+      }
+    }
     const client = await this.clientService.getClientById(id);
     return res.json(client);
   }
 
   async updateIndividualClient(req, res) {
     const id = this.validateId(req.params.id);
+    // Ownership: apenas o dono pode alterar
+    if (!req.user?.id) {
+      return res.status(401).json({ message: 'Usuário não autenticado' });
+    }
+    const me = await this.clientService.getClientByUserId(parseInt(req.user.id, 10));
+    if (me.id !== id) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
     const result = await this.clientService.updateIndividualClient(id, req.body);
     return res.json(result);
   }
 
   async updateCompanyClient(req, res) {
     const id = this.validateId(req.params.id);
+    // Ownership: apenas o dono pode alterar
+    if (!req.user?.id) {
+      return res.status(401).json({ message: 'Usuário não autenticado' });
+    }
+    const me = await this.clientService.getClientByUserId(parseInt(req.user.id, 10));
+    if (me.id !== id) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
     const result = await this.clientService.updateCompanyClient(id, req.body);
     return res.json(result);
   }
 
   async deleteClient(req, res) {
     const id = this.validateId(req.params.id);
+    // Ownership: apenas o dono pode excluir
+    if (!req.user?.id) {
+      return res.status(401).json({ message: 'Usuário não autenticado' });
+    }
+    const me = await this.clientService.getClientByUserId(parseInt(req.user.id, 10));
+    if (me.id !== id) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
     await this.clientService.deleteClient(id);
     return res.status(204).send();
   }

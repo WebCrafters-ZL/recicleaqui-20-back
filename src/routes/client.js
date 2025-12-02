@@ -1,6 +1,6 @@
 import express from 'express';
 import logger from '../utils/Logger.js';
-import authRequired from '../middlewares/AuthMiddleware.js';
+import authRequired, { hasRole } from '../middlewares/AuthMiddleware.js';
 import prisma from '../config/DatabaseManager.js';
 
 // Importar classes
@@ -19,52 +19,57 @@ const router = express.Router();
 const asyncHandler = (fn) => (req, res, next) => 
   Promise.resolve(fn(req, res, next)).catch(next);
 
+// Cadastro de cliente (público)
 router.post('/individual', asyncHandler(async (req, res) => {
   logger.info('Rota POST /clients/individual chamada');
   return clientController.createIndividualClient(req, res);
 }));
 
 
+// Cadastro de cliente (público)
 router.post('/company', asyncHandler(async (req, res) => {
   logger.info('Rota POST /clients/company chamada');
   return clientController.createCompanyClient(req, res);
 }));
 
 // Rota para obter dados do cliente logado
-router.get('/me', authRequired, asyncHandler(async (req, res) => {
+// Somente CLIENT pode consultar seus dados
+router.get('/me', authRequired, hasRole('CLIENT'), asyncHandler(async (req, res) => {
   logger.info('Rota GET /clients/me chamada');
   return clientController.getMe(req, res);
 }));
 
 // Rota para obter cliente por ID (autenticado)
-router.get('/:id', authRequired, asyncHandler(async (req, res) => {
+// Somente CLIENT autenticado pode consultar clientes (pode ser restrito ao próprio ID)
+router.get('/:id', authRequired, hasRole('CLIENT'), asyncHandler(async (req, res) => {
   logger.info(`Rota GET /clients/${req.params.id} chamada`);
   return clientController.getClientById(req, res);
 }));
 
-router.put('/individual/:id', authRequired, asyncHandler(async (req, res) => {
+router.put('/individual/:id', authRequired, hasRole('CLIENT'), asyncHandler(async (req, res) => {
   logger.info(`Rota PUT /clients/individual/${req.params.id} chamada`);
   return clientController.updateIndividualClient(req, res);
 }));
 
-router.put('/company/:id', authRequired, asyncHandler(async (req, res) => {
+router.put('/company/:id', authRequired, hasRole('CLIENT'), asyncHandler(async (req, res) => {
   logger.info(`Rota PUT /clients/company/${req.params.id} chamada`);
   return clientController.updateCompanyClient(req, res);
 }));
 
 // Rota para alteração de senha do cliente autenticado
-router.put('/password', authRequired, asyncHandler(async (req, res) => {
+router.put('/password', authRequired, hasRole('CLIENT'), asyncHandler(async (req, res) => {
   logger.info('Rota PUT /clients/password chamada');
   return clientController.changePassword(req, res);
 }));
 
-router.delete('/:id', authRequired, asyncHandler(async (req, res) => {
+router.delete('/:id', authRequired, hasRole('CLIENT'), asyncHandler(async (req, res) => {
   logger.info(`Rota DELETE /clients/${req.params.id} chamada`);
   return clientController.deleteClient(req, res);
 }));
 
 // Admin: list all
-router.get('/', asyncHandler(async (req, res) => {
+// Listagem geral pode ser pública ou reservada a ADMIN; aqui restringimos a ADMIN
+router.get('/', authRequired, hasRole('ADMIN'), asyncHandler(async (req, res) => {
   logger.info('Rota GET /clients chamada');
   return clientController.listAllClients(req, res);
 }));

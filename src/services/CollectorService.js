@@ -214,6 +214,32 @@ export default class CollectorService extends BaseService {
   }
 
   /**
+   * Retorna o userId dono do coletor
+   */
+  async getOwnerUserIdByCollectorId(collectorId) {
+    const collector = await this.collectorRepo.findById(collectorId);
+    if (!collector) {
+      throw this.createError('Coletor não encontrado', 404);
+    }
+    return collector.userId;
+  }
+
+  /**
+   * Retorna o userId dono do ponto de coleta
+   */
+  async getOwnerUserIdByCollectionPointId(collectionPointId) {
+    const point = await this.collectorRepo.findCollectionPointById(collectionPointId);
+    if (!point) {
+      throw this.createError('Ponto de coleta não encontrado', 404);
+    }
+    const collector = await this.collectorRepo.findById(point.collectorId);
+    if (!collector) {
+      throw this.createError('Coletor não encontrado', 404);
+    }
+    return collector.userId;
+  }
+
+  /**
    * Deleta coletor
    */
   async deleteCollector(id) {

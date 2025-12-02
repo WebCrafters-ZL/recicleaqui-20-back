@@ -5,6 +5,7 @@ import CollectorRepository from '../repositories/CollectorRepository.js';
 import DiscardService from '../services/DiscardService.js';
 import DiscardController from '../controllers/DiscardController.js';
 import logger from '../utils/Logger.js';
+import authRequired, { hasRole } from '../middlewares/AuthMiddleware.js';
 
 const discardRepository = new DiscardRepository(prisma);
 const collectorRepository = new CollectorRepository(prisma);
@@ -15,49 +16,57 @@ const router = express.Router();
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
 // Registrar descarte
-router.post('/', asyncHandler(async (req, res) => {
+// Registrar descarte: CLIENT
+router.post('/', authRequired, hasRole('CLIENT'), asyncHandler(async (req, res) => {
   logger.info('Rota POST /discards chamada');
   return discardController.registerDiscard(req, res);
 }));
 
 // Listar pontos elegíveis (passar address no body e lines na query)
+// Listar pontos elegíveis: público (pode ser sem auth)
 router.post('/eligible-points', asyncHandler(async (req, res) => {
   logger.info('Rota POST /discards/eligible-points chamada');
   return discardController.listEligiblePoints(req, res);
 }));
 
 // Coletores listam descartes pendentes pickup
-router.get('/pending-pickup/:collectorId', asyncHandler(async (req, res) => {
+// Coletores listam descartes pendentes: COLLECTOR
+router.get('/pending-pickup/:collectorId', authRequired, hasRole('COLLECTOR'), asyncHandler(async (req, res) => {
   logger.info('Rota GET /discards/pending-pickup/:collectorId chamada');
   return discardController.listPendingPickupDiscardsForCollector(req, res);
 }));
 
 // Criar oferta
-router.post('/:discardId/offers', asyncHandler(async (req, res) => {
+// Criar oferta: COLLECTOR
+router.post('/:discardId/offers', authRequired, hasRole('COLLECTOR'), asyncHandler(async (req, res) => {
   logger.info('Rota POST /discards/:discardId/offers chamada');
   return discardController.createOffer(req, res);
 }));
 
 // Aceitar oferta
-router.post('/offers/:offerId/accept', asyncHandler(async (req, res) => {
+// Aceitar oferta: CLIENT
+router.post('/offers/:offerId/accept', authRequired, hasRole('CLIENT'), asyncHandler(async (req, res) => {
   logger.info('Rota POST /discards/offers/:offerId/accept chamada');
   return discardController.acceptOffer(req, res);
 }));
 
 // Rejeitar oferta
-router.post('/offers/:offerId/reject', asyncHandler(async (req, res) => {
+// Rejeitar oferta: CLIENT
+router.post('/offers/:offerId/reject', authRequired, hasRole('CLIENT'), asyncHandler(async (req, res) => {
   logger.info('Rota POST /discards/offers/:offerId/reject chamada');
   return discardController.rejectOffer(req, res);
 }));
 
 // Cancelar descarte
-router.post('/:discardId/cancel', asyncHandler(async (req, res) => {
+// Cancelar descarte: CLIENT
+router.post('/:discardId/cancel', authRequired, hasRole('CLIENT'), asyncHandler(async (req, res) => {
   logger.info('Rota POST /discards/:discardId/cancel chamada');
   return discardController.cancelDiscard(req, res);
 }));
 
 // Concluir descarte
-router.post('/:discardId/complete', asyncHandler(async (req, res) => {
+// Concluir descarte: COLLECTOR
+router.post('/:discardId/complete', authRequired, hasRole('COLLECTOR'), asyncHandler(async (req, res) => {
   logger.info('Rota POST /discards/:discardId/complete chamada');
   return discardController.completeDiscard(req, res);
 }));

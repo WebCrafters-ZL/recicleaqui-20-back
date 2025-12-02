@@ -47,4 +47,5 @@ const authMiddleware = new AuthMiddleware();
 export default authMiddleware.required;
 
 // Export da classe para uso avançado
+export const hasRole = authMiddleware.hasRole;
 export { AuthMiddleware, authMiddleware };

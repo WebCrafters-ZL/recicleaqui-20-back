@@ -1,4 +1,5 @@
-import logger from '../utils/Logger.js';
+// src/middlewares/ErrorHandlerMiddleware.js
+import logger from "../utils/Logger.js";
 
 /**
  * ErrorHandlerMiddleware - Gerencia erros da aplicação
@@ -6,32 +7,32 @@ import logger from '../utils/Logger.js';
 class ErrorHandlerMiddleware {
   constructor(loggerInstance = logger) {
     this.logger = loggerInstance;
+
+    // garante que o this dentro de handle aponte para a instância
+    this.handle = this.handle.bind(this);
   }
 
   /**
    * Middleware principal de tratamento de erros
    */
   handle(err, req, res, next) {
-    // If headers were already sent, delegate to the default Express error handler
     if (res.headersSent) {
       return next(err);
     }
 
-    // Log de erro centralizado e seguro
     this.logger.error(`Erro (${req.method} ${req.originalUrl}): ${err.message}`, {
       stack: err.stack,
       status: err.status || 500,
-      user: req.user ? req.user.id : undefined
+      user: req.user ? req.user.id : undefined,
     });
 
-    const isDevelopment = req.app.get('env') === 'development';
-    
+    const isDevelopment = req.app.get("env") === "development";
+
     res.locals.message = err.message;
     res.locals.error = isDevelopment ? err : {};
-    res.status(err.status || 500);
-    res.json({
+    res.status(err.status || 500).json({
       message: err.message,
-      error: isDevelopment ? err : {}
+      error: isDevelopment ? err : {},
     });
   }
 
@@ -40,14 +41,14 @@ class ErrorHandlerMiddleware {
    */
   static createHandler(loggerInstance) {
     const handler = new ErrorHandlerMiddleware(loggerInstance);
-    return handler.handle;
+    return handler.handle; // já vem com bind do construtor
   }
 }
 
 // Instância singleton para compatibilidade
 const errorHandlerInstance = new ErrorHandlerMiddleware();
 
-// Export da função para compatibilidade
+// Export da função para compatibilidade (já bindada)
 export default errorHandlerInstance.handle;
 
 // Export da classe

@@ -24,6 +24,12 @@ router.get('/search', asyncHandler(async (req, res) => {
   return collectorController.searchCollectors(req, res);
 }));
 
+// Rota /me para coletor autenticado
+router.get('/me', authRequired, hasRole('COLLECTOR'), asyncHandler(async (req, res) => {
+  logger.info('Rota GET /collectors/me chamada');
+  return collectorController.getAuthenticatedCollector(req, res);
+}));
+
 // CRUD de coletores
 // Criação de coletor (pode ser pública, mas a gestão pós-criação será restrita a COLLECTOR)
 router.post('/', asyncHandler(async (req, res) => {

@@ -176,6 +176,17 @@ export default class CollectorService extends BaseService {
   }
 
   /**
+   * Busca coletor pelo userId
+   */
+  async getCollectorByUserId(userId) {
+    const collector = await this.collectorRepo.findByUserId(userId);
+    if (!collector) {
+      throw this.createError('Coletor não encontrado', 404);
+    }
+    return this.formatCollectorForResponse(collector);
+  }
+
+  /**
    * Atualiza coletor
    */
   async updateCollector(id, data) {

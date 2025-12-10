@@ -87,7 +87,10 @@ export default class DiscardService extends BaseService {
 
     // Filtro por localização (mesma UF e cidade ou distância se disponíveis)
     const { city, state, latitude, longitude } = clientAddress;
-    let filtered = points.filter(p => p.city.toLowerCase().includes(city.toLowerCase()) && p.state === state);
+    let filtered = points.filter(p =>
+      p.city.toLowerCase().trim() === city.toLowerCase().trim() &&
+      p.state === state
+    );
 
     if (latitude && longitude) {
       filtered = filtered.filter(p => {
@@ -162,7 +165,7 @@ export default class DiscardService extends BaseService {
     const withDistance = filtered
       .map(d => {
         let distance = null;
-        if (d.client.address && d.client.address.latitude && d.client.address.longitude &&
+        if (d.client.address?.latitude && d.client.address?.longitude &&
           headquarters.latitude && headquarters.longitude) {
           distance = this.calculateDistance(
             headquarters.latitude,
@@ -171,20 +174,34 @@ export default class DiscardService extends BaseService {
             d.client.address.longitude
           );
         }
+
         return {
-          ...d,
+          id: d.id,
+          mode: d.mode,
+          status: d.status,
+          description: d.description,
+          lines: d.lines,
+          createdAt: d.createdAt,
+          client: {
+            name: d.client.individual
+              ? `${d.client.individual.firstName} ${d.client.individual.lastName}`
+              : d.client.company?.companyName || 'Cliente',
+            phone: d.client.phone
+          },
+          address: {
+            addressName: d.client.address?.addressName || '',
+            number: d.client.address?.number || '',
+            neighborhood: d.client.address?.neighborhood || '',
+            postalCode: d.client.address?.postalCode || '',
+            city: d.client.address?.city || '',
+            state: d.client.address?.state || '',
+            latitude: d.client.address?.latitude,
+            longitude: d.client.address?.longitude
+          },
           distanceFromHeadquarters: distance
         };
       })
       .filter(d => d.distanceFromHeadquarters === null || d.distanceFromHeadquarters <= radiusKm);
-
-    // Ordena por distância (nulos ao final)
-    return withDistance.sort((a, b) => {
-      if (a.distanceFromHeadquarters === null && b.distanceFromHeadquarters === null) return 0;
-      if (a.distanceFromHeadquarters === null) return 1;
-      if (b.distanceFromHeadquarters === null) return -1;
-      return a.distanceFromHeadquarters - b.distanceFromHeadquarters;
-    });
   }
 
   /**

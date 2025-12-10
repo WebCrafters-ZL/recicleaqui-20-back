@@ -183,7 +183,7 @@ export default class CollectorService extends BaseService {
     if (!collector) {
       throw this.createError('Coletor não encontrado', 404);
     }
-    return this.formatCollectorForResponse(collector);
+    return collector;
   }
 
   /**

@@ -329,6 +329,7 @@ Cria um novo coletor com sede e pontos de coleta.
     "addressType": "Rua",
     "addressName": "Industrial",
     "number": "500",
+    "additionalInfo": "Galpão 3",
     "neighborhood": "Distrito Industrial",
     "postalCode": "13500000",
     "city": "Rio Claro",
@@ -343,6 +344,7 @@ Cria um novo coletor com sede e pontos de coleta.
       "addressType": "Rua",
       "addressName": "Principal",
       "number": "100",
+      "additionalInfo": "Próximo ao mercado municipal",
       "neighborhood": "Centro",
       "postalCode": "13500001",
       "city": "Rio Claro",
@@ -389,6 +391,7 @@ Retorna dados completos do coletor autenticado (inclui sede e pontos de coleta).
     "addressType": "Rua",
     "addressName": "Industrial",
     "number": "500",
+    "additionalInfo": "Galpão 3",
     "neighborhood": "Distrito Industrial",
     "city": "Rio Claro",
     "state": "SP"
@@ -426,6 +429,7 @@ Obtém dados completos de um coletor por ID (inclui sede e pontos de coleta).
     "addressType": "Rua",
     "addressName": "Industrial",
     "number": "500",
+    "additionalInfo": "Galpão 3",
     "neighborhood": "Distrito Industrial",
     "city": "Rio Claro",
     "state": "SP"

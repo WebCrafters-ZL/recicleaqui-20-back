@@ -104,13 +104,19 @@ export default class DiscardService extends BaseService {
     return filtered.map(p => ({
       id: p.id,
       name: p.name,
-      address: `${p.addressName}, ${p.number}`,
+      addressName: p.addressName,
+      number: p.number,
+      neighborhood: p.neighborhood,
+      postalCode: p.postalCode,
       city: p.city,
       state: p.state,
       latitude: p.latitude,
       longitude: p.longitude,
       acceptedLines: p.acceptedLines,
-      collector: { id: p.collector.id, tradeName: p.collector.tradeName }
+      collector: { id: p.collector.id, tradeName: p.collector.tradeName },
+      distanceKm: latitude && longitude && p.latitude && p.longitude
+        ? this.calculateDistance(latitude, longitude, p.latitude, p.longitude)
+        : null,
     }));
   }
 
@@ -125,6 +131,60 @@ export default class DiscardService extends BaseService {
 
     // Filtrar por linhas (coletor deve aceitar todas)
     return discards.filter(d => d.lines.every(l => collector.acceptedLines.includes(l)));
+  }
+
+  /**
+   * Lista descartes pendentes de coleta ordenados por distância da sede do coletor
+   * Retorna apenas descartes que o coletor aceita (por linhas de materiais) e que estão dentro do raio
+   * @param {number} collectorId - ID do coletor
+   * @param {number} radiusKm - Raio máximo em quilômetros (padrão: 15km)
+   */
+  async listPendingPickupDiscardsByDistance(collectorId, radiusKm = 15) {
+    const collector = await this.collectorRepo.findById(collectorId);
+    if (!collector) throw this.createError('Coletor não encontrado', 404);
+
+    // Busca a sede do coletor (headquarters)
+    const headquarters = await this.prisma.collectorHeadquarters.findUnique({
+      where: { collectorId }
+    });
+    if (!headquarters) throw this.createError('Sede do coletor não encontrada', 404);
+
+    // Busca todos os descartes PENDING em modo PICKUP
+    const discards = await this.discardRepo.listDiscards(
+      { mode: 'PICKUP', status: 'PENDING' },
+      { client: { include: { address: true } } }
+    );
+
+    // Filtra por linhas (coletor deve aceitar todas)
+    const filtered = discards.filter(d => d.lines.every(l => collector.acceptedLines.includes(l)));
+
+    // Calcula distância e filtra por raio
+    const withDistance = filtered
+      .map(d => {
+        let distance = null;
+        if (d.client.address && d.client.address.latitude && d.client.address.longitude &&
+          headquarters.latitude && headquarters.longitude) {
+          distance = this.calculateDistance(
+            headquarters.latitude,
+            headquarters.longitude,
+            d.client.address.latitude,
+            d.client.address.longitude
+          );
+        }
+        return {
+          ...d,
+          distanceFromHeadquarters: distance
+        };
+      })
+      .filter(d => d.distanceFromHeadquarters === null || d.distanceFromHeadquarters <= radiusKm);
+
+    // Ordena por distância (nulos ao final)
+    return withDistance.sort((a, b) => {
+      if (a.distanceFromHeadquarters === null && b.distanceFromHeadquarters === null) return 0;
+      if (a.distanceFromHeadquarters === null) return 1;
+      if (b.distanceFromHeadquarters === null) return -1;
+      return a.distanceFromHeadquarters - b.distanceFromHeadquarters;
+    });
   }
 
   /**
@@ -269,10 +329,10 @@ export default class DiscardService extends BaseService {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
 }

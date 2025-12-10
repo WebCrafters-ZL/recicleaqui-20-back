@@ -1,6 +1,7 @@
 import BaseService from '../core/BaseService.js';
 import { hashPassword } from '../utils/HashUtils.js';
 import { isValidEmail, isValidCNPJ, onlyDigits } from '../utils/Validators.js';
+import { enrichAddressWithCoordinates } from '../utils/GeocodingUtils.js';
 
 /**
  * CollectorService - Gerencia lógica de negócio para coletores
@@ -69,6 +70,20 @@ export default class CollectorService extends BaseService {
     // Hash da senha
     const hashedPassword = await hashPassword(password);
 
+    // Geocodificar sede
+    let enrichedHeadquarters = headquarters;
+    if (headquarters) {
+      enrichedHeadquarters = await enrichAddressWithCoordinates(headquarters);
+    }
+
+    // Geocodificar pontos de coleta
+    let enrichedCollectionPoints = collectionPoints;
+    if (collectionPoints && Array.isArray(collectionPoints)) {
+      enrichedCollectionPoints = await Promise.all(
+        collectionPoints.map(point => enrichAddressWithCoordinates(point))
+      );
+    }
+
     // Criar coletor
     return this.collectorRepo.create({
       email,
@@ -81,8 +96,8 @@ export default class CollectorService extends BaseService {
       operatingHours,
       collectionType,
       acceptedLines: acceptedLines || acceptedMaterials || [],
-      headquarters,
-      collectionPoints
+      headquarters: enrichedHeadquarters,
+      collectionPoints: enrichedCollectionPoints
     });
   }
 
@@ -211,6 +226,12 @@ export default class CollectorService extends BaseService {
       }
     }
 
+    // Geocodificar sede se fornecida
+    let enrichedHeadquarters = headquarters;
+    if (headquarters) {
+      enrichedHeadquarters = await enrichAddressWithCoordinates(headquarters);
+    }
+
     return this.collectorRepo.update(id, {
       phone,
       companyName,
@@ -220,7 +241,7 @@ export default class CollectorService extends BaseService {
       operatingHours,
       collectionType,
       acceptedLines: acceptedLines || acceptedMaterials,
-      headquarters
+      headquarters: enrichedHeadquarters
     });
   }
 
@@ -261,9 +282,9 @@ export default class CollectorService extends BaseService {
    * Cria ponto de coleta
    */
   async createCollectionPoint(collectorId, data) {
-        const { name, description, addressName, number, additionalInfo, 
-          neighborhood, postalCode, city, state, latitude, longitude, 
-          operatingHours, acceptedLines, acceptedMaterials } = data;
+    const { name, description, addressName, number, additionalInfo, 
+      neighborhood, postalCode, city, state, latitude, longitude, 
+      operatingHours, acceptedLines, acceptedMaterials } = data;
 
     // Validar campos obrigatórios
     const required = ['name', 'addressName', 'number', 'neighborhood', 'postalCode', 'city', 'state'];
@@ -275,9 +296,8 @@ export default class CollectorService extends BaseService {
       throw this.createError('Coletor não encontrado', 404);
     }
 
-    return this.collectorRepo.createCollectionPoint({
-      name,
-      description,
+    // Geocodificar endereço do ponto de coleta
+    const addressData = {
       addressName,
       number,
       additionalInfo,
@@ -286,7 +306,22 @@ export default class CollectorService extends BaseService {
       city,
       state,
       latitude,
-      longitude,
+      longitude
+    };
+    const enrichedAddress = await enrichAddressWithCoordinates(addressData);
+
+    return this.collectorRepo.createCollectionPoint({
+      name,
+      description,
+      addressName: enrichedAddress.addressName,
+      number: enrichedAddress.number,
+      additionalInfo: enrichedAddress.additionalInfo,
+      neighborhood: enrichedAddress.neighborhood,
+      postalCode: enrichedAddress.postalCode,
+      city: enrichedAddress.city,
+      state: enrichedAddress.state,
+      latitude: enrichedAddress.latitude,
+      longitude: enrichedAddress.longitude,
       operatingHours,
       acceptedLines: acceptedLines || acceptedMaterials || [],
       collectorId
@@ -302,7 +337,31 @@ export default class CollectorService extends BaseService {
       throw this.createError('Ponto de coleta não encontrado', 404);
     }
 
-    return this.collectorRepo.updateCollectionPoint(id, data);
+    // Geocodificar endereço se algum campo de endereço foi fornecido
+    let enrichedData = data;
+    const hasAddressFields = data.addressName || data.number || data.additionalInfo || 
+                             data.neighborhood || data.postalCode || data.city || data.state;
+    if (hasAddressFields) {
+      const addressData = {
+        addressName: data.addressName || existingPoint.addressName,
+        number: data.number || existingPoint.number,
+        additionalInfo: data.additionalInfo || existingPoint.additionalInfo,
+        neighborhood: data.neighborhood || existingPoint.neighborhood,
+        postalCode: data.postalCode || existingPoint.postalCode,
+        city: data.city || existingPoint.city,
+        state: data.state || existingPoint.state,
+        latitude: data.latitude || existingPoint.latitude,
+        longitude: data.longitude || existingPoint.longitude
+      };
+      const enrichedAddress = await enrichAddressWithCoordinates(addressData);
+      enrichedData = {
+        ...data,
+        latitude: enrichedAddress.latitude,
+        longitude: enrichedAddress.longitude
+      };
+    }
+
+    return this.collectorRepo.updateCollectionPoint(id, enrichedData);
   }
 
   /**

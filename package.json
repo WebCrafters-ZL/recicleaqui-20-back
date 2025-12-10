@@ -7,6 +7,7 @@
     "start": "node --env-file=.env ./bin/www",
     "dev": "nodemon --env-file=.env.development.local ./bin/www",
     "migrate:dev": "dotenv -e .env.development.local prisma migrate dev",
+    "migrate:reset": "dotenv -e .env.development.local prisma migrate reset",
     "migrate:prod": "dotenv -e .env prisma migrate deploy",
     "migrate:status": "dotenv -e .env.development.local prisma migrate status",
     "lint": "eslint . --fix"

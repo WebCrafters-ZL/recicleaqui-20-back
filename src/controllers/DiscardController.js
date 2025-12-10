@@ -8,6 +8,7 @@ export default class DiscardController extends BaseController {
     this.registerDiscard = this.registerDiscard.bind(this);
     this.listEligiblePoints = this.listEligiblePoints.bind(this);
     this.listPendingPickupDiscardsForCollector = this.listPendingPickupDiscardsForCollector.bind(this);
+    this.listPendingPickupDiscardsByDistance = this.listPendingPickupDiscardsByDistance.bind(this);
     this.createOffer = this.createOffer.bind(this);
     this.acceptOffer = this.acceptOffer.bind(this);
     this.rejectOffer = this.rejectOffer.bind(this);
@@ -41,6 +42,18 @@ export default class DiscardController extends BaseController {
       return res.status(403).json({ message: 'Acesso negado' });
     }
     const discards = await this.discardService.listPendingPickupDiscardsForCollector(collectorId);
+    return res.json(discards);
+  }
+
+  async listPendingPickupDiscardsByDistance(req, res) {
+    const collectorId = this.validateId(req.params.collectorId, 'collectorId');
+    // Ownership: coletor só pode listar os seus
+    const ownerUserId = await this.discardService.getCollectorOwnerUserId(collectorId);
+    if (ownerUserId !== parseInt(req.user.id, 10)) {
+      return res.status(403).json({ message: 'Acesso negado' });
+    }
+    const radiusKm = req.query.radius ? parseFloat(req.query.radius) : 15;
+    const discards = await this.discardService.listPendingPickupDiscardsByDistance(collectorId, radiusKm);
     return res.json(discards);
   }
 

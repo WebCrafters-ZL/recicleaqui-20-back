@@ -36,6 +36,13 @@ router.get('/pending-pickup/:collectorId', authRequired, hasRole('COLLECTOR'), a
   return discardController.listPendingPickupDiscardsForCollector(req, res);
 }));
 
+// Coletores listam descartes pendentes por distância
+// Coletores listam descartes por distância: COLLECTOR
+router.get('/nearby/:collectorId', authRequired, hasRole('COLLECTOR'), asyncHandler(async (req, res) => {
+  logger.info('Rota GET /discards/nearby/:collectorId chamada');
+  return discardController.listPendingPickupDiscardsByDistance(req, res);
+}));
+
 // Criar oferta
 // Criar oferta: COLLECTOR
 router.post('/:discardId/offers', authRequired, hasRole('COLLECTOR'), asyncHandler(async (req, res) => {

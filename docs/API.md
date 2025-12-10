@@ -19,6 +19,7 @@
   - [POST /:id/avatar](#post-apiv1clientsidavatar)
 - [3. Coletores](#3-coletores-apiv1collectors)
   - [POST /](#post-apiv1collectors)
+  - [GET /me](#get-apiv1collectorsme)
   - [GET /:id](#get-apiv1collectorsid)
 - [4. Descartes](#4-descartes-apiv1discards)
   - [POST /](#post-apiv1discards)
@@ -363,6 +364,45 @@ Cria um novo coletor com sede e pontos de coleta.
   "email": "contato@recicladora.com",
   "role": "COLLECTOR",
   "collectionType": "BOTH"
+}
+```
+
+### GET `/api/v1/collectors/me`
+Retorna dados completos do coletor autenticado (inclui sede e pontos de coleta).
+
+**Autenticação:** Requer header `Authorization: Bearer <token>` e role `COLLECTOR`.
+
+**Resposta (200):**
+
+```json
+{
+  "id": 5,
+  "companyName": "Recicladora LTDA",
+  "tradeName": "Recicladora",
+  "cnpj": "12345678000195",
+  "phone": "1133334444",
+  "description": "Empresa especializada em reciclagem de plástico e papel",
+  "operatingHours": "Seg-Sex: 8h-18h",
+  "collectionType": "BOTH",
+  "acceptedLines": ["VERDE", "AZUL", "MARROM"],
+  "headquarters": {
+    "addressType": "Rua",
+    "addressName": "Industrial",
+    "number": "500",
+    "neighborhood": "Distrito Industrial",
+    "city": "Rio Claro",
+    "state": "SP"
+  },
+  "collectionPoints": [
+    {
+      "id": 1,
+      "name": "Ponto Centro",
+      "city": "Rio Claro",
+      "state": "SP",
+      "isActive": true,
+      "acceptedLines": ["VERDE", "AZUL"]
+    }
+  ]
 }
 ```
 

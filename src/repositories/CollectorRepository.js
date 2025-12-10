@@ -154,6 +154,29 @@ export default class CollectorRepository {
   }
 
   /**
+   * Busca coletor por userId
+   */
+  async findByUserId(userId) {
+    return this.prisma.collector.findUnique({ 
+      where: { userId },
+      include: { 
+        user: { 
+          select: { 
+            id: true, 
+            email: true, 
+            role: true, 
+            createdAt: true 
+          } 
+        }, 
+        headquarters: true,
+        collectionPoints: {
+          where: { isActive: true }
+        }
+      } 
+    });
+  }
+
+  /**
    * Busca usuário por email
    */
   async findUserByEmail(email) {

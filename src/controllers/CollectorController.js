@@ -19,6 +19,7 @@ export default class CollectorController extends BaseController {
     this.updateCollectionPoint = this.updateCollectionPoint.bind(this);
     this.deleteCollectionPoint = this.deleteCollectionPoint.bind(this);
     this.getCollectionPointsByCollector = this.getCollectionPointsByCollector.bind(this);
+    this.getAuthenticatedCollector = this.getAuthenticatedCollector.bind(this);
   }
 
   async createCollector(req, res) {
@@ -116,5 +117,13 @@ export default class CollectorController extends BaseController {
     const collectorId = this.validateId(req.params.collectorId, 'ID do coletor');
     const points = await this.collectorService.getCollectionPointsByCollector(collectorId);
     return res.json(points);
+  }
+
+  async getAuthenticatedCollector(req, res) {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: 'Usuário não autenticado' });
+    }
+    const collector = await this.collectorService.getCollectorByUserId(parseInt(req.user.id, 10));
+    return res.json(collector);
   }
 }
